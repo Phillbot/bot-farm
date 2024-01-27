@@ -1,7 +1,19 @@
 import { CronJob } from 'cron';
 
+import { botSubscribers } from '@database/postgresql/models/bot-subscribers.model';
+
 import { nbuRateBot } from '../nbu-rate.bot';
 import { NBUCurrencyRateUtils } from '../nbu-utils';
+import { nbuTexts } from '../nbu-texts';
+
+/**
+ * Every time when we use part of find we cant use TS
+ * https://sequelize.org/docs/v7/querying/select-in-depth/
+ */
+
+type ChatIdsData = {
+  user_id: number | string;
+};
 
 export const dailyExchanges = CronJob.from({
   cronTime: String(process.env.NBU_RATE_CRON_SCHEMA),
@@ -14,19 +26,23 @@ export const dailyExchanges = CronJob.from({
     const message =
       NBUCurrencyRateUtils.createTableForMessage(convertCurrencyData);
 
-    // TODO: add database and register/unregister command for subscribe
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const chatIds: ChatIdsData[] = await botSubscribers.findAll({
+      raw: true,
+      attributes: ['user_id'],
+      where: {
+        is_subscribe_active: true,
+      },
+    });
 
-    const chatIds = [
-      ...String(process.env.NBU_RATE_EXCHANGE_CHAT_ID).split(','),
-    ];
-
-    chatIds.forEach((chatId) => {
+    chatIds.forEach(({ user_id }) => {
       nbuRateBot.api
         .sendMessage(
-          chatId,
-          NBUCurrencyRateUtils.createrMessage(
+          user_id,
+          NBUCurrencyRateUtils.creatorMessage(
             message.table.toString(),
-            '*Today NBU exchange:*\n\n',
+            `*${nbuTexts['today NBU exchange']['en']}:*\n\n`,
           ),
           { parse_mode: 'MarkdownV2' },
         )
@@ -36,6 +52,5 @@ export const dailyExchanges = CronJob.from({
         });
     });
   },
-  start: true,
   timeZone: 'Europe/Kyiv',
 });

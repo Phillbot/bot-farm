@@ -1,8 +1,8 @@
 import { Bot, Context } from 'grammy';
 import { EmojiFlavor, emojiParser } from '@grammyjs/emoji';
 
-import { nbuRate } from './commands/nbu-rate.command';
 import { dailyExchanges } from './cron-jobs/daily-exhanges.job';
+import { nbuRate, nbuSubscribe } from './commands';
 
 export type NBUCurrencyContext = EmojiFlavor<Context>;
 
@@ -15,6 +15,7 @@ nbuRateBot.use(emojiParser());
 
 // commands
 nbuRateBot.command(['rate', 'rate_main'], nbuRate);
+nbuRateBot.command(['subscribe', 'unsubscribe'], nbuSubscribe);
 
 // common
 nbuRateBot.on('message', () => {

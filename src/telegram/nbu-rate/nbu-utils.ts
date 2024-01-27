@@ -53,7 +53,7 @@ export class NBUCurrencyRateUtils {
     return nbuTable;
   }
 
-  public static createrMessage(message: string, prefix: string = ''): string {
+  public static creatorMessage(message: string, prefix: string = ''): string {
     return `${prefix}\`\`\`${message}\`\`\``;
   }
 }
