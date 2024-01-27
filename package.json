@@ -1,0 +1,41 @@
+{
+  "name": "bot-farm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build && node dist/index.js",
+    "start:dev": "npx nodemon",
+    "build": "rimraf ./dist && tsc",
+    "prettier": "prettier --write \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
+    "prettier:check": "prettier -c \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
+    "lint": "eslint  --ext .tsx,.ts --fix src/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cors": "2.8.17",
+    "@types/express": "4.17.17",
+    "@types/node": "20.5.9",
+    "@typescript-eslint/eslint-plugin": "6.19.1",
+    "eslint": "8.56.0",
+    "eslint-plugin-import": "2.29.1",
+    "nodemon": "3.0.1",
+    "prettier": "3.2.4",
+    "ts-node": "10.9.1",
+    "tsconfig-paths": "4.2.0",
+    "typescript": "5.2.2"
+  },
+  "dependencies": {
+    "rimraf": "5.0.1",
+    "axios": "1.6.7",
+    "cors": "2.8.5",
+    "cron": "3.1.6",
+    "dotenv": "16.3.1",
+    "express": "4.18.2",
+    "grammy": "1.20.3",
+    "prettytable.js": "1.0.1",
+    "some-random-cat": "2.4.0"
+  }
+}
