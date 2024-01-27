@@ -8,9 +8,7 @@ class ServerConfig {
   private readonly _PORT: number;
 
   constructor() {
-    this._PORT = process.env.SERVER_PORT
-      ? Number(process.env.SERVER_PORT)
-      : defaultPort;
+    this._PORT = process.env.PORT ? Number(process.env.PORT) : defaultPort;
   }
 
   get config(): ServerConfigType {

@@ -11,7 +11,7 @@ TODO:
 | Variable name               | type                        |
 | --------------------------- | --------------------------- |
 | ENV                         | development \| production   |
-| SERVER_PORT                 | number                      |
+| PORT                        | number                      |
 | NBU_RATE_BOT_TOKEN          | string                      |
 | NBU_RATE_CRON_SCHEMA        | \* \* \* \* \*              |
 | NBU_RATE_EXCHANGE_API_URL   | string                      |
