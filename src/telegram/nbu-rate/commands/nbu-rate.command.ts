@@ -1,7 +1,7 @@
 import { CommandContext } from 'grammy';
 
 import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../utils';
+import { NBUCurrencyRateUtils } from '../nbu-utils';
 
 export type NBURate = {
   r030: number;

@@ -1,7 +1,7 @@
 import { CronJob } from 'cron';
 
 import { nbuRateBot } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../utils';
+import { NBUCurrencyRateUtils } from '../nbu-utils';
 
 export const dailyExchanges = CronJob.from({
   cronTime: String(process.env.NBU_RATE_CRON_SCHEMA),

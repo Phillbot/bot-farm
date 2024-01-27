@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "start:dev": "npx nodemon",
-    "build": "rimraf ./dist && tsc",
+    "build": "rm -rf ./dist && tsc && tsc-alias",
     "prettier": "prettier --write \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "prettier:check": "prettier -c \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "lint": "eslint  --ext .tsx,.ts --fix src/"
@@ -23,12 +23,14 @@
     "eslint-plugin-import": "2.29.1",
     "nodemon": "3.0.1",
     "prettier": "3.2.4",
+    "rimraf": "5.0.1",
     "ts-node": "10.9.1",
+    "tsc-alias": "^1.8.8",
     "tsconfig-paths": "4.2.0",
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "rimraf": "5.0.1",
+    "@grammyjs/emoji": "^1.2.0",
     "axios": "1.6.7",
     "cors": "2.8.5",
     "cron": "3.1.6",
