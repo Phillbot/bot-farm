@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 import { expressServer } from './server';
+import { postgresqlSequelize } from './database';
 import { nbuRateBot } from './telegram';
 
 /**
@@ -10,6 +11,21 @@ import { nbuRateBot } from './telegram';
  */
 
 expressServer.listen();
+
+/**
+ * Here we put databases connectors
+ */
+
+(async () => {
+  await postgresqlSequelize
+    .authenticate()
+    .then(() =>
+      // eslint-disable-next-line
+      console.table({ database: 'postgresqlSequelize', status: 'ok' }),
+    )
+    // eslint-disable-next-line
+    .catch((error) => console.error(error));
+})();
 
 /**
  * Here we start bot
@@ -23,6 +39,11 @@ expressServer.listen();
       description: 'Show NBU exchanges. All or by currencies',
     },
     { command: 'rate_main', description: 'Show NBU USD and EUR exchanges' },
+    {
+      command: 'subscribe',
+      description: 'Will send exchange to user automatically 2 times per day',
+    },
+    { command: 'unsubscribe', description: 'Remove subscribe' },
   ]);
 
   await nbuRateBot.start({

@@ -1,5 +1,7 @@
 import { CommandContext } from 'grammy';
 
+import { TelegramUtils } from '@telegram/telegram-utils';
+
 import { NBUCurrencyContext } from '../nbu-rate.bot';
 import { NBUCurrencyRateUtils } from '../nbu-utils';
 
@@ -37,15 +39,9 @@ export const nbuRate = async (ctx: CommandContext<NBUCurrencyContext>) => {
   const message =
     NBUCurrencyRateUtils.createTableForMessage(convertCurrencyData);
 
-  await ctx
-    .reply(NBUCurrencyRateUtils.createrMessage(message.table.toString()), {
-      parse_mode: 'MarkdownV2',
-    })
-    .catch((error) => {
-      // eslint-disable-next-line
-      console.log(error);
-    })
-    // collect logs?
-    // eslint-disable-next-line
-    .finally(() => console.log(ctx.message));
+  await TelegramUtils.sendReply<NBUCurrencyContext>(
+    ctx,
+    NBUCurrencyRateUtils.creatorMessage(message.table.toString()),
+    'MarkdownV2',
+  );
 };

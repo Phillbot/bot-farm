@@ -19,6 +19,7 @@
       "@server/*": ["server/*"],
       "@utils/*": ["utils/*"],
       "@common/*": ["common/*"],
+      "@database/*": ["database/*"],
     },
   },
   "include": ["./src/**/*", "declaration.d.ts"],

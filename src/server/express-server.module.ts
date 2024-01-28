@@ -23,6 +23,7 @@ class ExpressApp {
 
           // eslint-disable-next-line
           await console.table({
+            server: 'express',
             status: 'ok',
             port: serverConfig.port,
             cat: cat.url,
