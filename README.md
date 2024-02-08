@@ -7,6 +7,8 @@ TODO:
 - connect JIRA (?)
 - cron for chats
 - custom reglament time (?)
+- inversify ?
+- OOP?
 
 **ENV vars**
 

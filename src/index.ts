@@ -44,6 +44,7 @@ expressServer.listen();
       description: 'Will send exchange to user automatically 2 times per day',
     },
     { command: 'unsubscribe', description: 'Remove subscribe' },
+    { command: 'start', description: 'Welcome, friend!' },
   ]);
 
   await nbuRateBot.start({
