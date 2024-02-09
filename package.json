@@ -33,15 +33,20 @@
   "dependencies": {
     "@grammyjs/emoji": "1.2.0",
     "axios": "1.6.7",
+    "chart.js": "3.5.1",
+    "chartjs-node-canvas": "4.1.6",
+    "chartjs-plugin-datalabels": "2.2.0",
     "cors": "2.8.5",
     "cron": "3.1.6",
     "dotenv": "16.3.1",
     "express": "4.18.2",
     "grammy": "1.20.3",
+    "moment": "2.30.1",
     "pg": "8.11.3",
     "pg-hstore": "2.3.4",
     "prettytable.js": "1.0.1",
     "sequelize": "6.35.2",
-    "some-random-cat": "2.4.0"
+    "some-random-cat": "2.4.0",
+    "uniqolor": "1.1.1"
   }
 }

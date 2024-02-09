@@ -29,4 +29,8 @@ export const nbuTexts: NBUTextType = {
     ['en']: 'Today NBU exchange',
     ['uk']: 'Курс НБУ на сьогодні',
   },
+  ['chart period']: {
+    ['en']: 'Period from {{startDate}} to {{endDate}}',
+    ['uk']: 'Період з {{startDate}} по {{endDate}}',
+  },
 };

@@ -5,13 +5,18 @@ import { botSubscribers } from '@database/postgresql/models/bot-subscribers.mode
 import { TelegramUtils } from '@telegram/telegram-utils';
 import { TableCreator } from '@utils/table-creator';
 
-import { NBUCurrencyContext } from './nbu-rate.bot';
+import { NBUCurrencyContext } from '../nbu-rate.bot';
 import { nbuTexts } from './nbu-texts';
-import { MainCommandType, NBURate, SubscribeCommandType } from './types';
+import {
+  MainCommandType,
+  NBUPeriodRateType,
+  NBURateType,
+  SubscribeCommandType,
+} from './types';
 
 export class NBUCurrencyRateUtils {
   // prettier-ignore
-  public static currencies: string[] = [
+  public static currencies = [
     'AUD','CAD','CNY','CZK','DKK','HKD','HUF','INR','IDR','ILS','JPY','KZT',
     'KRW','MXN','MDL','NZD','NOK','RUB','SGD','ZAR','SEK','CHF','EGP','GBP',
     'USD','BYN','AZN','RON','TRY','XDR','BGN','EUR','PLN','DZD','BDT','AMD',
@@ -19,10 +24,11 @@ export class NBUCurrencyRateUtils {
     'AED','TND','UZS','TWD','TMT','RSD','TJS','GEL','BRL','XAU','XAG','XPT',
     'XPD',
   ];
+  public static mainCurrencies = ['USD', 'EUR'];
 
-  public static mainCurrencies: string[] = ['USD', 'EUR'];
-
-  public static getNBUExchangeRate = (): Promise<AxiosResponse<NBURate[]>> => {
+  public static getNBUExchangeRate = (): Promise<
+    AxiosResponse<NBURateType[]>
+  > => {
     return axios
       .get(String(process.env.NBU_RATE_EXCHANGE_API_URL))
       .then((res) => res)
@@ -36,7 +42,7 @@ export class NBUCurrencyRateUtils {
   }
 
   public static getConvertCurrencyData = (
-    data: NBURate[],
+    data: NBURateType[],
     fullList: boolean,
     isExistAdditionalCurrency: boolean,
     matchedCurrenciesFromCommand: string[],
@@ -52,7 +58,7 @@ export class NBUCurrencyRateUtils {
               NBUCurrencyRateUtils.currencies.includes(rate.cc)
           : rate;
       })
-      .map(({ r030, cc, rate }: NBURate) => [r030, cc, rate]);
+      .map(({ r030, cc, rate }: NBURateType) => [r030, cc, rate]);
   };
 
   public static createTableForMessage(
@@ -67,6 +73,23 @@ export class NBUCurrencyRateUtils {
   public static creatorMessage(message: string, prefix: string = ''): string {
     return `${prefix}\`\`\`${message}\`\`\``;
   }
+
+  public static getNBUExchangeRateByPeriod = (
+    startDate: string,
+    endDate: string,
+  ): Promise<AxiosResponse<NBUPeriodRateType[]>> => {
+    const url = String(
+      process.env.NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL?.replace(
+        '{{startDate}}',
+        startDate,
+      )?.replace('{{endDate}}', endDate),
+    );
+
+    return axios
+      .get(url)
+      .then((res) => res)
+      .catch((e) => e);
+  };
 
   // TODO: rework with separately class ?
   // TODO: i18 for messages

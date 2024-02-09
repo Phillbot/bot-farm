@@ -3,8 +3,8 @@ import { CronJob } from 'cron';
 import { botSubscribers } from '@database/postgresql/models/bot-subscribers.model';
 
 import { nbuRateBot } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../nbu-utils';
-import { nbuTexts } from '../nbu-texts';
+import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
+import { nbuTexts } from '../helpers/nbu-texts';
 
 /**
  * Every time when we use part of find we cant use TS

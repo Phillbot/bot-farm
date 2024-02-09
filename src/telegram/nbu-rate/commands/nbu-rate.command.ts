@@ -3,13 +3,13 @@ import { CommandContext } from 'grammy';
 import { TelegramUtils } from '@telegram/telegram-utils';
 
 import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../nbu-utils';
+import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
 
 export const nbuRate = async (ctx: CommandContext<NBUCurrencyContext>) => {
   try {
     const fullList = !ctx.message?.text.includes('/rate_main') || false;
 
-    const matchedCurrenciesFromCommand: string[] =
+    const matchedCurrenciesFromCommand =
       NBUCurrencyRateUtils.getMatchedCurrenciesFromCommand(ctx.match);
 
     const filteredCurrenciesFromCommand = matchedCurrenciesFromCommand.filter(
