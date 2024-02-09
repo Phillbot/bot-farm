@@ -1,1 +1,1 @@
-export * from './postgresql/postgresql.database';
+export * from './nbu-rate-bot.db';

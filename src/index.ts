@@ -1,8 +1,11 @@
 import 'dotenv/config';
 
+import container from '@config/inversify.config';
+
 import { expressServer } from './server';
-import { postgresqlSequelize } from './database';
-import { nbuRateBot } from './telegram';
+import { NBURateBot } from './telegram';
+import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from './cron-jobs';
+import { NBURateBotPostgresqlSequelize } from './database';
 
 /**
  * Here we start server
@@ -16,42 +19,18 @@ expressServer.listen();
  * Here we put databases connectors
  */
 
-(async () => {
-  await postgresqlSequelize
-    .authenticate()
-    .then(() =>
-      // eslint-disable-next-line
-      console.table({ database: 'postgresqlSequelize', status: 'ok' }),
-    )
-    // eslint-disable-next-line
-    .catch((error) => console.error(error));
-})();
+container.get<NBURateBotPostgresqlSequelize>(NBURateBotPostgresqlSequelize);
 
 /**
  * Here we start bot
  * we can start any bots below
  */
 
-(async () => {
-  await nbuRateBot.api.setMyCommands([
-    {
-      command: 'rate',
-      description: 'Show NBU exchanges. All or by currencies',
-    },
-    { command: 'rate_main', description: 'Show NBU USD and EUR exchanges' },
-    {
-      command: 'subscribe',
-      description: 'Will send exchange to user automatically 2 times per day',
-    },
-    { command: 'unsubscribe', description: 'Remove subscribe' },
-    { command: 'start', description: 'Welcome, friend!' },
-  ]);
+container.get<NBURateBot>(NBURateBot);
 
-  await nbuRateBot.start({
-    onStart: (bot) => {
-      // eslint-disable-next-line
-      console.table({ bot_name: 'nbuRateBot', ...bot });
-    },
-    drop_pending_updates: true,
-  });
-})();
+/**
+ * Here we cat run any cron Jobs
+ */
+
+container.get<NBURateBotChartJob>(NBURateBotChartJob);
+container.get<NBURateBotDailyExchangesJob>(NBURateBotDailyExchangesJob);

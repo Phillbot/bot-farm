@@ -1,13 +1,17 @@
+import { injectable } from 'inversify';
 import { CommandContext, Context } from 'grammy';
 import { ParseMode } from 'grammy/types';
-import { LangType } from 'types/lang';
+import { t } from 'config/i18.config';
 
+@injectable()
 export class TelegramUtils {
-  public static sendReply<T extends Context>(
+  public sendReply<T extends Context>(
     ctx: CommandContext<T>,
     text: string,
     parse_mode?: ParseMode | undefined,
   ) {
+    t.setLocale(ctx.from?.language_code || 'en');
+
     ctx
       .reply(text, {
         parse_mode: parse_mode,
@@ -19,11 +23,5 @@ export class TelegramUtils {
       // collect logs?
       // eslint-disable-next-line
       .finally(() => console.log(ctx.me, ctx.message));
-  }
-
-  // TODO: i18
-  public static getLang(langCode?: string): LangType {
-    const supportedLangs: LangType[] = ['en', 'uk'];
-    return supportedLangs.find((l) => langCode === l) || 'uk';
   }
 }

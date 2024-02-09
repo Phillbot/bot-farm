@@ -1,27 +1,34 @@
+import { inject, injectable } from 'inversify';
 import { CommandContext } from 'grammy';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
 
-import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
+import { NBURateBotContext } from '../nbu-rate.bot';
+import { NBURateBotUtils, currencies } from '../helpers/nbu-utils';
 
-export const nbuRate = async (ctx: CommandContext<NBUCurrencyContext>) => {
-  try {
+@injectable()
+export class NBURateBotRateCommand {
+  constructor(
+    @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
+    @inject(TelegramUtils) private _telegramUtils: TelegramUtils,
+  ) {}
+
+  public async withCtx(ctx: CommandContext<NBURateBotContext>) {
     const fullList = !ctx.message?.text.includes('/rate_main') || false;
 
     const matchedCurrenciesFromCommand =
-      NBUCurrencyRateUtils.getMatchedCurrenciesFromCommand(ctx.match);
+      this._nbuRateBotUtils.getMatchedCurrenciesFromCommand(ctx.match);
 
     const filteredCurrenciesFromCommand = matchedCurrenciesFromCommand.filter(
-      (curr) => NBUCurrencyRateUtils.currencies.includes(curr),
+      (curr) => currencies.includes(curr),
     );
 
     const isExistAdditionalCurrency = filteredCurrenciesFromCommand.length > 0;
 
-    const { data } = await NBUCurrencyRateUtils.getNBUExchangeRate();
+    const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
 
     const convertCurrencyData =
-      await NBUCurrencyRateUtils.getConvertCurrencyData(
+      await this._nbuRateBotUtils.getConvertCurrencyData(
         data,
         fullList,
         isExistAdditionalCurrency,
@@ -29,16 +36,12 @@ export const nbuRate = async (ctx: CommandContext<NBUCurrencyContext>) => {
       );
 
     const message =
-      NBUCurrencyRateUtils.createTableForMessage(convertCurrencyData);
+      this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
 
-    await TelegramUtils.sendReply<NBUCurrencyContext>(
+    await this._telegramUtils.sendReply<NBURateBotContext>(
       ctx,
-      NBUCurrencyRateUtils.creatorMessage(message.table.toString()),
+      this._nbuRateBotUtils.codeMessageCreator(message.table.toString()),
       'MarkdownV2',
     );
-  } catch (error) {
-    // TODO: logger
-    // eslint-disable-next-line
-    console.log('nbuRate', error);
   }
-};
+}
