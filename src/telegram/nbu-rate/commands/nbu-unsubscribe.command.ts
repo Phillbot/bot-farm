@@ -1,41 +1,41 @@
+import { inject, injectable } from 'inversify';
 import { CommandContext } from 'grammy';
 
-import { botSubscribers } from '@database/postgresql/models/bot-subscribers.model';
+import { NBURateBotContext } from '../nbu-rate.bot';
+import { NBUCurrencyBotUser } from '../../../database/nbu-rate-bot-user.entity';
+import { NBURateBotUtils } from '../helpers/nbu-utils';
 
-import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
+@injectable()
+export class NBURateBotUnsubscribeCommand {
+  constructor(
+    @inject(NBUCurrencyBotUser) private _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(NBURateBotUtils)
+    private _nbuRateBotUtils: NBURateBotUtils,
+  ) {}
 
-export const nbuUnsubscribe = async (
-  ctx: CommandContext<NBUCurrencyContext>,
-) => {
-  try {
-    const user = await botSubscribers.findOne({
-      where: { user_id: ctx.from?.id },
-    });
+  public async withCtx(ctx: CommandContext<NBURateBotContext>) {
+    if (!ctx.from?.id) {
+      return;
+    }
+
+    const user = await this._nbuCurrencyBotUser.getUserById(ctx.from.id);
+
+    const { createUser, unableToUpdateSubscribe, updateSubscribe } =
+      this._nbuRateBotUtils.subscribeManager(ctx, ctx.from.id, 'unsubscribe');
 
     if (user?.dataValues) {
       const isUserSubscriber: boolean =
         await user?.dataValues.is_subscribe_active;
 
       if (isUserSubscriber) {
-        await NBUCurrencyRateUtils.subscribeManager.updateSubscribe(
-          ctx,
-          'unsubscribe',
-        );
+        await updateSubscribe();
         return;
       }
 
-      await NBUCurrencyRateUtils.subscribeManager.unableToUpdateSubscribe(
-        ctx,
-        'unsubscribe',
-      );
+      await unableToUpdateSubscribe();
+      return;
     }
-
-    await NBUCurrencyRateUtils.subscribeManager.createUser(ctx, 'unsubscribe');
+    await createUser();
     return;
-  } catch (error) {
-    // TODO: logger
-    // eslint-disable-next-line
-    console.log('nbuUnsubscribe', error);
   }
-};
+}

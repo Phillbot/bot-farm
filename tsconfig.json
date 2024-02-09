@@ -11,6 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
 
     "skipLibCheck": true,
     "baseUrl": "./src",
@@ -20,6 +22,9 @@
       "@utils/*": ["utils/*"],
       "@common/*": ["common/*"],
       "@database/*": ["database/*"],
+      "@config/*": ["config/*"],
+      "@cron-jobs/*": ["cron-jobs/*"],
+      "@localization": ["i18.config.ts"],
     },
   },
   "include": ["./src/**/*", "declaration.d.ts"],

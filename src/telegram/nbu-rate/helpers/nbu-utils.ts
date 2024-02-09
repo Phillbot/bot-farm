@@ -1,12 +1,14 @@
+import { inject, injectable } from 'inversify';
 import axios, { AxiosResponse } from 'axios';
 import { CommandContext } from 'grammy';
 
-import { botSubscribers } from '@database/postgresql/models/bot-subscribers.model';
 import { TelegramUtils } from '@telegram/telegram-utils';
 import { TableCreator } from '@utils/table-creator';
+import { t } from 'config/i18.config';
 
-import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { nbuTexts } from './nbu-texts';
+import { NBURateBotContext } from '../nbu-rate.bot';
+import { NBUCurrencyBotUser } from '../../../database/nbu-rate-bot-user.entity';
+
 import {
   MainCommandType,
   NBUPeriodRateType,
@@ -14,34 +16,41 @@ import {
   SubscribeCommandType,
 } from './types';
 
-export class NBUCurrencyRateUtils {
-  // prettier-ignore
-  public static currencies = [
-    'AUD','CAD','CNY','CZK','DKK','HKD','HUF','INR','IDR','ILS','JPY','KZT',
-    'KRW','MXN','MDL','NZD','NOK','RUB','SGD','ZAR','SEK','CHF','EGP','GBP',
-    'USD','BYN','AZN','RON','TRY','XDR','BGN','EUR','PLN','DZD','BDT','AMD',
-    'DOP','IRR','IQD','KGS','LBP','LYD','MYR','MAD','PKR','SAR','VND','THB',
-    'AED','TND','UZS','TWD','TMT','RSD','TJS','GEL','BRL','XAU','XAG','XPT',
-    'XPD',
-  ];
-  public static mainCurrencies = ['USD', 'EUR'];
+// prettier-ignore
+export const  currencies = [
+  'AUD','CAD','CNY','CZK','DKK','HKD','HUF','INR','IDR','ILS','JPY','KZT',
+  'KRW','MXN','MDL','NZD','NOK','RUB','SGD','ZAR','SEK','CHF','EGP','GBP',
+  'USD','BYN','AZN','RON','TRY','XDR','BGN','EUR','PLN','DZD','BDT','AMD',
+  'DOP','IRR','IQD','KGS','LBP','LYD','MYR','MAD','PKR','SAR','VND','THB',
+  'AED','TND','UZS','TWD','TMT','RSD','TJS','GEL','BRL','XAU','XAG','XPT',
+  'XPD',
+];
 
-  public static getNBUExchangeRate = (): Promise<
-    AxiosResponse<NBURateType[]>
-  > => {
+export const mainCurrencies = ['USD', 'EUR'];
+
+@injectable()
+export class NBURateBotUtils {
+  constructor(
+    @inject(NBUCurrencyBotUser)
+    private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(TelegramUtils)
+    private readonly _telegramUtils: TelegramUtils,
+  ) {}
+
+  public getNBUExchangeRate = (): Promise<AxiosResponse<NBURateType[]>> => {
     return axios
       .get(String(process.env.NBU_RATE_EXCHANGE_API_URL))
       .then((res) => res)
       .catch((e) => e);
   };
 
-  public static getMatchedCurrenciesFromCommand(match: string): string[] {
+  public getMatchedCurrenciesFromCommand(match: string): string[] {
     return match.trim() !== ''
       ? match.replace(/\s+/g, ' ').trim().toUpperCase().split(' ')
       : [];
   }
 
-  public static getConvertCurrencyData = (
+  public getConvertCurrencyData = (
     data: NBURateType[],
     fullList: boolean,
     isExistAdditionalCurrency: boolean,
@@ -50,31 +59,29 @@ export class NBUCurrencyRateUtils {
     return data
       .filter((rate) => {
         if (!fullList) {
-          return NBUCurrencyRateUtils.mainCurrencies.includes(rate.cc);
+          return mainCurrencies.includes(rate.cc);
         }
 
         return isExistAdditionalCurrency
           ? matchedCurrenciesFromCommand.includes(rate.cc) &&
-              NBUCurrencyRateUtils.currencies.includes(rate.cc)
+              currencies.includes(rate.cc)
           : rate;
       })
       .map(({ r030, cc, rate }: NBURateType) => [r030, cc, rate]);
   };
 
-  public static createTableForMessage(
-    body: (string | number)[][],
-  ): TableCreator {
+  public createMessageWithTable(body: (string | number)[][]): TableCreator {
     const header = ['Code', 'Currency', 'Rate'];
     const nbuTable = new TableCreator(header, body);
 
     return nbuTable;
   }
 
-  public static creatorMessage(message: string, prefix: string = ''): string {
+  public codeMessageCreator(message: string, prefix: string = ''): string {
     return `${prefix}\`\`\`${message}\`\`\``;
   }
 
-  public static getNBUExchangeRateByPeriod = (
+  public getNBUExchangeRateByPeriod = (
     startDate: string,
     endDate: string,
   ): Promise<AxiosResponse<NBUPeriodRateType[]>> => {
@@ -91,76 +98,48 @@ export class NBUCurrencyRateUtils {
       .catch((e) => e);
   };
 
-  // TODO: rework with separately class ?
-  // TODO: i18 for messages
-  public static subscribeManager = {
-    createUser: async (
-      ctx: CommandContext<NBUCurrencyContext>,
-      type: MainCommandType | SubscribeCommandType,
-    ) => {
-      await botSubscribers
-        .create({
-          user_id: ctx.from?.id,
-          user_name: ctx.from?.username,
-          is_subscribe_active: false,
-        })
-        .then(() => {
-          TelegramUtils.sendReply(
-            ctx,
-            type === 'start'
-              ? nbuTexts['start'][
-                  TelegramUtils.getLang(ctx.from?.language_code)
-                ]
-              : type === 'subscribe'
-                ? nbuTexts['subscribe activated'][
-                    TelegramUtils.getLang(ctx.from?.language_code)
-                  ]
-                : nbuTexts['subscribe not active'][
-                    TelegramUtils.getLang(ctx.from?.language_code)
-                  ],
-          );
-        })
-        // TODO: logger
-        // eslint-disable-next-line
-        .catch((e) => console.log(e));
-    },
+  public subscribeManager(
+    ctx: CommandContext<NBURateBotContext>,
+    userId: number,
+    type: MainCommandType | SubscribeCommandType,
+  ) {
+    const isSubscribeAction = type === 'subscribe';
 
-    updateSubscribe: async (
-      ctx: CommandContext<NBUCurrencyContext>,
-      type: SubscribeCommandType,
-    ) => {
-      await botSubscribers
-        .update(
-          { is_subscribe_active: type === 'subscribe' ? true : false },
-          { where: { user_id: ctx.from?.id } },
-        )
+    const createUser = async () => {
+      await this._nbuCurrencyBotUser
+        .createUser(userId, false, ctx.from?.username)
         .then(() => {
-          TelegramUtils.sendReply<NBUCurrencyContext>(
+          this._telegramUtils.sendReply(
             ctx,
-            nbuTexts[
-              type === 'subscribe'
-                ? 'subscribe activated'
-                : 'subscribe deactivated'
-            ][TelegramUtils.getLang(ctx.from?.language_code)],
+            isSubscribeAction
+              ? t.__mf('nbu-exchange-bot-subscribe-activated')
+              : t.__mf('nbu-exchange-bot-subscribe-not-active'),
           );
-        })
-        // TODO: logger
-        // eslint-disable-next-line
-        .catch((e) => console.log(e));
-    },
+        });
+    };
 
-    unableToUpdateSubscribe: async (
-      ctx: CommandContext<NBUCurrencyContext>,
-      type: SubscribeCommandType,
-    ) => {
-      await TelegramUtils.sendReply<NBUCurrencyContext>(
+    const updateSubscribe = async () => {
+      this._nbuCurrencyBotUser
+        .updateUser(userId, isSubscribeAction)
+        .then(() => {
+          this._telegramUtils.sendReply(
+            ctx,
+            isSubscribeAction
+              ? t.__mf('nbu-exchange-bot-subscribe-activated')
+              : t.__mf('nbu-exchange-bot-subscribe-deactivated'),
+          );
+        });
+    };
+
+    const unableToUpdateSubscribe = async () => {
+      await this._telegramUtils.sendReply(
         ctx,
-        nbuTexts[
-          type === 'subscribe'
-            ? 'subscribe already active'
-            : 'subscribe not active'
-        ][TelegramUtils.getLang(ctx.from?.language_code)],
+        isSubscribeAction
+          ? t.__mf('nbu-exchange-bot-subscribe-already-active')
+          : t.__mf('nbu-exchange-bot-subscribe-not-active'),
       );
-    },
-  };
+    };
+
+    return { createUser, updateSubscribe, unableToUpdateSubscribe };
+  }
 }

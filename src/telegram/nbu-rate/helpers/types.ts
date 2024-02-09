@@ -1,8 +1,22 @@
-import { NBUCurrencyRateUtils } from './nbu-utils';
-
 export type MainCommandType = 'start';
 export type RateCommandType = 'rate' | 'rate_main';
 export type SubscribeCommandType = 'subscribe' | 'unsubscribe';
+
+export enum COMMANDS {
+  START = 'start',
+  SUBSCRIBE = 'subscribe',
+  UNSUBSCRIBE = 'unsubscribe',
+  RATE = 'rate',
+  RATE_MAIN = 'rate_main',
+}
+
+export enum COMMANDS_DESCRIPTORS {
+  START = 'Welcome, friend!',
+  SUBSCRIBE = 'Will send exchange to user automatically 2 times per day',
+  UNSUBSCRIBE = 'Remove subscribe',
+  RATE = 'Show NBU exchanges. All or by currencies',
+  RATE_MAIN = 'Show NBU USD and EUR exchanges',
+}
 
 export type CommandType =
   | MainCommandType
@@ -20,7 +34,7 @@ export type NBURateType = {
 export type NBUPeriodRateType = {
   exchangedate: string;
   r030: number; // need typing 840 978 ...
-  cc: CurrenciesType;
+  cc: string; // need typing as const currencies
   txt: string;
   enname: string;
   rate: number;
@@ -29,7 +43,3 @@ export type NBUPeriodRateType = {
   group: string;
   calcdate: string;
 };
-
-export type CurrenciesType = (typeof NBUCurrencyRateUtils.currencies)[number];
-export type MainCurrenciesType =
-  (typeof NBUCurrencyRateUtils.mainCurrencies)[number];

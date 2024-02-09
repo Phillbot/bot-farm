@@ -1,30 +1,36 @@
 import { CommandContext } from 'grammy';
+import { inject, injectable } from 'inversify';
 
-import { botSubscribers } from '@database/postgresql/models/bot-subscribers.model';
 import { TelegramUtils } from '@telegram/telegram-utils';
+import { t } from 'config/i18.config';
 
-import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { nbuTexts } from '../helpers/nbu-texts';
-import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
+import { NBURateBotContext } from '../nbu-rate.bot';
 
-export const nbuStart = async (ctx: CommandContext<NBUCurrencyContext>) => {
-  try {
-    const user = await botSubscribers.findOne({
-      where: { user_id: ctx.from?.id },
-    });
+import { NBUCurrencyBotUser } from '../../../database/nbu-rate-bot-user.entity';
 
-    if (user?.dataValues) {
-      await TelegramUtils.sendReply(
-        ctx,
-        nbuTexts['start'][TelegramUtils.getLang(ctx.from?.language_code)],
-      );
+@injectable()
+export class NBURateBotStartCommand {
+  constructor(
+    @inject(NBUCurrencyBotUser) private _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(TelegramUtils) private _telegramUtils: TelegramUtils,
+  ) {}
+
+  public async withCtx(ctx: CommandContext<NBURateBotContext>) {
+    if (!ctx.from?.id) {
       return;
     }
 
-    await NBUCurrencyRateUtils.subscribeManager.createUser(ctx, 'start');
-  } catch (error) {
-    // TODO: logger
-    // eslint-disable-next-line
-    console.log('nbuStart', error);
+    const user = await this._nbuCurrencyBotUser.getUserById(ctx.from.id);
+    const isUserExist = user?.dataValues;
+
+    if (!isUserExist) {
+      await this._nbuCurrencyBotUser.createUser(
+        ctx.from.id,
+        false,
+        ctx.from?.username,
+      );
+    }
+
+    await this._telegramUtils.sendReply(ctx, t.__mf('nbu-exchange-bot-start'));
   }
-};
+}

@@ -2,13 +2,13 @@ TODO:
 
 - remove consoles, add logger
 - reg command for get curr by reglament ✅
-- i18
+- i18 ✅ - need configure
 - database for collect log and registration data ✅
 - connect JIRA (?)
 - cron for chats
 - custom reglament time (?)
-- inversify ?
-- OOP?
+- inversify ✅
+- OOP ✅
 - limit requests?
 - queue
 - user save and update lang data
