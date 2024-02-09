@@ -4,8 +4,8 @@ import { botSubscribers } from '@database/postgresql/models/bot-subscribers.mode
 import { TelegramUtils } from '@telegram/telegram-utils';
 
 import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { nbuTexts } from '../nbu-texts';
-import { NBUCurrencyRateUtils } from '../nbu-utils';
+import { nbuTexts } from '../helpers/nbu-texts';
+import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
 
 export const nbuStart = async (ctx: CommandContext<NBUCurrencyContext>) => {
   try {

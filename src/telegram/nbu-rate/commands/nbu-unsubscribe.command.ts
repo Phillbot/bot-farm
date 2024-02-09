@@ -3,7 +3,7 @@ import { CommandContext } from 'grammy';
 import { botSubscribers } from '@database/postgresql/models/bot-subscribers.model';
 
 import { NBUCurrencyContext } from '../nbu-rate.bot';
-import { NBUCurrencyRateUtils } from '../nbu-utils';
+import { NBUCurrencyRateUtils } from '../helpers/nbu-utils';
 
 export const nbuUnsubscribe = async (
   ctx: CommandContext<NBUCurrencyContext>,

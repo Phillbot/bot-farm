@@ -1,9 +1,10 @@
 import { Bot, Context } from 'grammy';
+
 import { EmojiFlavor, emojiParser } from '@grammyjs/emoji';
 
-import { dailyExchanges } from './cron-jobs/daily-exhanges.job';
 import { nbuRate, nbuStart, nbuSubscribe } from './commands';
 import { nbuUnsubscribe } from './commands/nbu-unsubscribe.command';
+import { chart, dailyExchanges } from './cron-jobs';
 
 export type NBUCurrencyContext = EmojiFlavor<Context>;
 
@@ -21,6 +22,8 @@ nbuRateBot.command('unsubscribe', nbuUnsubscribe);
 
 nbuRateBot.command(['rate', 'rate_main'], nbuRate);
 
+nbuRateBot.command('chart');
+
 // common
 nbuRateBot.on('message', () => {
   // here we can track all incoming message from private and groups (need admin) by ctx
@@ -32,3 +35,4 @@ nbuRateBot.catch((e) => console.log(e));
 
 //cron-jobs
 dailyExchanges.start();
+chart.start();
