@@ -1,10 +1,10 @@
 import { inject, injectable } from 'inversify';
 import axios, { AxiosResponse } from 'axios';
 import { CommandContext } from 'grammy';
+import { t } from 'i18next';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
 import { TableCreator } from '@utils/table-creator';
-import { t } from 'config/i18.config';
 
 import { NBURateBotContext } from '../nbu-rate.bot';
 import { NBUCurrencyBotUser } from '../../../database/nbu-rate-bot-user.entity';
@@ -112,8 +112,8 @@ export class NBURateBotUtils {
           this._telegramUtils.sendReply(
             ctx,
             isSubscribeAction
-              ? t.__mf('nbu-exchange-bot-subscribe-activated')
-              : t.__mf('nbu-exchange-bot-subscribe-not-active'),
+              ? t('t:nbu-exchange-bot-subscribe-activated')
+              : t('t:nbu-exchange-bot-subscribe-not-active'),
           );
         });
     };
@@ -125,8 +125,8 @@ export class NBURateBotUtils {
           this._telegramUtils.sendReply(
             ctx,
             isSubscribeAction
-              ? t.__mf('nbu-exchange-bot-subscribe-activated')
-              : t.__mf('nbu-exchange-bot-subscribe-deactivated'),
+              ? t('t:nbu-exchange-bot-subscribe-activated')
+              : t('t:nbu-exchange-bot-subscribe-deactivated'),
           );
         });
     };
@@ -135,8 +135,8 @@ export class NBURateBotUtils {
       await this._telegramUtils.sendReply(
         ctx,
         isSubscribeAction
-          ? t.__mf('nbu-exchange-bot-subscribe-already-active')
-          : t.__mf('nbu-exchange-bot-subscribe-not-active'),
+          ? t('t:nbu-exchange-bot-subscribe-already-active')
+          : t('t:nbu-exchange-bot-subscribe-not-active'),
       );
     };
 

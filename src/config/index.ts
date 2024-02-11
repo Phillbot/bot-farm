@@ -1,2 +1,2 @@
-export * from './i18.config';
+export * from './i18n';
 export * from './inversify.config';

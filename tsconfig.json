@@ -24,7 +24,6 @@
       "@database/*": ["database/*"],
       "@config/*": ["config/*"],
       "@cron-jobs/*": ["cron-jobs/*"],
-      "@localization": ["i18.config.ts"],
     },
   },
   "include": ["./src/**/*", "declaration.d.ts"],

@@ -2,7 +2,7 @@
   "nbu-exchange-bot-start": "Привіт! Ви можете отримати курс НБУ за допомогою команди /rate або відправити /subscribe для автоматичного отримання курсу щодня о 9:00 та 18:00.",
   "nbu-exchange-bot-subscribe-deactivated": "Готово, підписку деактивовано",
   "nbu-exchange-bot-subscribe-not-active": "Підписка не активна. Надішліть /subscribe для активації",
-  "nbu-exchange-bot-subscribe-already-active": "Підписку активована раніше",
+  "nbu-exchange-bot-subscribe-already-active": "Підписку активовано раніше",
   "nbu-exchange-bot-subscribe-activated": "Підписку активовано!",
   "nbu-exchange-bot-today-exchange": "Курс НБУ на сьогодні",
   "nbu-exchange-bot-chart-period": "Період з {startDate} по {endDate}"

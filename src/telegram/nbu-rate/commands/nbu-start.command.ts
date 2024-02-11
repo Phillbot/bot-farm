@@ -1,8 +1,8 @@
 import { CommandContext } from 'grammy';
 import { inject, injectable } from 'inversify';
+import { t } from 'i18next';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
-import { t } from 'config/i18.config';
 
 import { NBURateBotContext } from '../nbu-rate.bot';
 
@@ -31,6 +31,6 @@ export class NBURateBotStartCommand {
       );
     }
 
-    await this._telegramUtils.sendReply(ctx, t.__mf('nbu-exchange-bot-start'));
+    await this._telegramUtils.sendReply(ctx, t('t:nbu-exchange-bot-start'));
   }
 }

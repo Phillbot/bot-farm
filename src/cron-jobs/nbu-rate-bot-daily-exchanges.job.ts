@@ -4,7 +4,7 @@ import { CronJob } from 'cron';
 import { NBURateBot } from '@telegram/index';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import { NBURateBotUtils } from '@telegram/nbu-rate/helpers/nbu-utils';
-import { t } from 'config/i18.config';
+import { t } from 'i18next';
 
 /**
  * Every time when we use part of find we cant use TS
@@ -54,7 +54,7 @@ export class NBURateBotDailyExchangesJob {
               user_id,
               this._nbuRateBotUtils.codeMessageCreator(
                 message.table.toString(),
-                `*${t.__mf('nbu-exchange-bot-today-exchange')}:*\n\n`,
+                `*${t('t:nbu-exchange-bot-today-exchange')}:*\n\n`,
               ),
               { parse_mode: 'MarkdownV2' },
             )

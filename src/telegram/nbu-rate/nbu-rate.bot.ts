@@ -2,6 +2,7 @@ import { Bot, Context } from 'grammy';
 import { inject, injectable } from 'inversify';
 
 import { EmojiFlavor, emojiParser } from '@grammyjs/emoji';
+import { TelegramUtils } from '@telegram/telegram-utils';
 import {
   NBURateBotRateCommand,
   NBURateBotStartCommand,
@@ -9,8 +10,6 @@ import {
   NBURateBotUnsubscribeCommand,
 } from './commands';
 import { COMMANDS, COMMANDS_DESCRIPTORS } from './helpers/types';
-
-// import { chart, dailyExchanges } from './cron-jobs';
 
 export type NBURateBotContext = EmojiFlavor<Context>;
 
@@ -29,18 +28,15 @@ export class NBURateBot {
     private _nbuRateBotSubscribeCommand: NBURateBotSubscribeCommand,
     @inject(NBURateBotUnsubscribeCommand)
     private _nbuRateBotUnsubscribeCommand: NBURateBotUnsubscribeCommand,
+    @inject(TelegramUtils)
+    private _telegramUtils: TelegramUtils,
   ) {
     this._bot.use(emojiParser());
+    this._bot.use(this._telegramUtils.changeLangMiddleware);
 
     this.init();
 
     this.commands();
-
-    // keep it on bottom - its will work if there was any omission before
-    this._bot.on('message', () => {
-      // here we can track all incoming message from private and groups (need admin) by ctx
-    });
-
     // errors
     // eslint-disable-next-line
     this._bot.catch((e) => console.log(e));
