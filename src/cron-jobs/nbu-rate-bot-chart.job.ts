@@ -2,7 +2,7 @@ import moment from 'moment';
 import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
-import { t } from 'config/i18.config';
+import { t } from 'i18next';
 
 import { NBURateBotChartBuilder } from '../telegram/nbu-rate/helpers/chart-builder.service';
 import { NBUCurrencyBotUser } from '../database/nbu-rate-bot-user.entity';
@@ -53,8 +53,8 @@ export class NBURateBotChartJob {
           this._nbuRateBot.bot.api
             .sendPhoto(user_id, new InputFile(chart), {
               parse_mode: 'HTML',
-              caption: `<b>Weekly Chart</b>\n\n<code>${t.__mf(
-                'nbu-exchange-bot-chart-period',
+              caption: `<b>Weekly Chart</b>\n\n<code>${t(
+                't:nbu-exchange-bot-chart-period',
                 {
                   startDate,
                   endDate,

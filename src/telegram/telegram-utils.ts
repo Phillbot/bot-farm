@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
-import { CommandContext, Context } from 'grammy';
+import { CommandContext, Context, NextFunction } from 'grammy';
 import { ParseMode } from 'grammy/types';
-import { t } from 'config/i18.config';
+import i18next from 'i18next';
 
 @injectable()
 export class TelegramUtils {
@@ -10,8 +10,6 @@ export class TelegramUtils {
     text: string,
     parse_mode?: ParseMode | undefined,
   ) {
-    t.setLocale(ctx.from?.language_code || 'en');
-
     ctx
       .reply(text, {
         parse_mode: parse_mode,
@@ -24,4 +22,17 @@ export class TelegramUtils {
       // eslint-disable-next-line
       .finally(() => console.log(ctx.me, ctx.message));
   }
+
+  public changeLangMiddleware = async function (
+    ctx: Context,
+    next: NextFunction,
+  ) {
+    if (ctx.from?.language_code) {
+      if (i18next.language !== ctx.from.language_code) {
+        await i18next.changeLanguage(ctx.from.language_code);
+      }
+    }
+
+    await next();
+  };
 }

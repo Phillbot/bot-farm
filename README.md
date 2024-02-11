@@ -1,17 +1,21 @@
 TODO:
 
-- remove consoles, add logger
 - reg command for get curr by reglament ✅
-- i18 ✅ - need configure
-- database for collect log and registration data ✅
-- connect JIRA (?)
-- cron for chats
-- custom reglament time (?)
+- i18n\* ✅
 - inversify ✅
 - OOP ✅
-- limit requests?
-- queue
-- user save and update lang data
+- database for registration data ✅
+- chart ✅
+
+- sending to users functions with delay and clear delay
+- remove consoles, add logger
+- limit requests\*\*
+- connect JIRA (?)
+- custom reglament time (?)
+- queue + redis (?)
+
+\*Can be improve with namespaces and types config
+\*\*At this moment its control by telegram because almost request send to telegram API
 
 **ENV vars**
 
