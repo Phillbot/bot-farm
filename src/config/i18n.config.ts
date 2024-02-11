@@ -19,11 +19,8 @@ export const resources = {
 };
 
 i18n.init({
+  fallbackLng: ['uk', 'en'],
   lng: 'uk',
   debug: process.env.ENV === 'development',
   resources,
-  fallbackLng: false,
-  interpolation: {
-    useRawValueToEscape: true,
-  },
 });

@@ -62,6 +62,7 @@ export class NBURateBot {
 
   private async init() {
     await this._bot.api.setMyCommands([
+      { command: COMMANDS.START, description: COMMANDS_DESCRIPTORS.START },
       {
         command: COMMANDS.RATE,
         description: COMMANDS_DESCRIPTORS.RATE,
@@ -78,7 +79,6 @@ export class NBURateBot {
         command: COMMANDS.UNSUBSCRIBE,
         description: COMMANDS_DESCRIPTORS.UNSUBSCRIBE,
       },
-      { command: COMMANDS.START, description: COMMANDS_DESCRIPTORS.START },
     ]);
 
     await this._bot.start({

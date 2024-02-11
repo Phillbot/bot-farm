@@ -31,6 +31,11 @@ export class NBURateBotStartCommand {
       );
     }
 
-    await this._telegramUtils.sendReply(ctx, t('t:nbu-exchange-bot-start'));
+    await this._telegramUtils.sendReply(
+      ctx,
+      t('t:nbu-exchange-bot-start', {
+        firstName: ctx.from.first_name,
+      }),
+    );
   }
 }
