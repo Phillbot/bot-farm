@@ -9,7 +9,7 @@ export class NBUCurrencyBotUser {
   ) {}
   public async getUserById(userId?: number) {
     return (
-      this._nbuRateBotPostgresqlSequelize.nbuRateBotUsersModel
+      this._nbuRateBotPostgresqlSequelize.user
         .findOne({
           where: { user_id: userId },
         })
@@ -20,7 +20,7 @@ export class NBUCurrencyBotUser {
 
   public async getSubscribersChatIds() {
     return (
-      this._nbuRateBotPostgresqlSequelize.nbuRateBotUsersModel
+      this._nbuRateBotPostgresqlSequelize.user
         .findAll({
           raw: true,
           attributes: ['user_id'],
@@ -36,22 +36,28 @@ export class NBUCurrencyBotUser {
   public async createUser(
     userId: number,
     isSubscribeActive: boolean,
+    lang: string,
     username?: string,
   ) {
-    this._nbuRateBotPostgresqlSequelize.nbuRateBotUsersModel
+    this._nbuRateBotPostgresqlSequelize.user
       .create({
-        user_id: userId,
+        user_id: Number(userId),
         user_name: username,
         is_subscribe_active: isSubscribeActive,
+        lang,
       })
       // eslint-disable-next-line
       .catch((e) => console.log(e));
   }
 
-  public async updateUser(userId: number, isSubscribeActive: boolean) {
-    this._nbuRateBotPostgresqlSequelize.nbuRateBotUsersModel
+  public async updateUser(
+    userId: number,
+    isSubscribeActive: boolean,
+    lang: string,
+  ) {
+    this._nbuRateBotPostgresqlSequelize.user
       .update(
-        { is_subscribe_active: isSubscribeActive },
+        { is_subscribe_active: isSubscribeActive, lang },
         { where: { user_id: userId } },
       )
       // eslint-disable-next-line

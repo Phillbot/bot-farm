@@ -1,7 +1,6 @@
 import { inject, injectable } from 'inversify';
 import axios, { AxiosResponse } from 'axios';
-import { CommandContext } from 'grammy';
-import { t } from 'i18next';
+import { CommandContext, NextFunction } from 'grammy';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
 import { TableCreator } from '@utils/table-creator';
@@ -27,6 +26,10 @@ export const  currencies = [
 ];
 
 export const mainCurrencies = ['USD', 'EUR'];
+
+export const DefaultLang = 'uk';
+
+export const supportLangs = [DefaultLang, 'en'] as const;
 
 @injectable()
 export class NBURateBotUtils {
@@ -107,26 +110,35 @@ export class NBURateBotUtils {
 
     const createUser = async () => {
       await this._nbuCurrencyBotUser
-        .createUser(userId, false, ctx.from?.username)
+        .createUser(
+          userId,
+          false,
+          ctx.from?.language_code || DefaultLang,
+          ctx.from?.username,
+        )
         .then(() => {
           this._telegramUtils.sendReply(
             ctx,
             isSubscribeAction
-              ? t('t:nbu-exchange-bot-subscribe-activated')
-              : t('t:nbu-exchange-bot-subscribe-not-active'),
+              ? ctx.t('nbu-exchange-bot-subscribe-activated')
+              : ctx.t('nbu-exchange-bot-subscribe-not-active'),
           );
         });
     };
 
     const updateSubscribe = async () => {
       this._nbuCurrencyBotUser
-        .updateUser(userId, isSubscribeAction)
+        .updateUser(
+          userId,
+          isSubscribeAction,
+          ctx.from?.language_code || DefaultLang,
+        )
         .then(() => {
           this._telegramUtils.sendReply(
             ctx,
             isSubscribeAction
-              ? t('t:nbu-exchange-bot-subscribe-activated')
-              : t('t:nbu-exchange-bot-subscribe-deactivated'),
+              ? ctx.t('nbu-exchange-bot-subscribe-activated')
+              : ctx.t('nbu-exchange-bot-subscribe-deactivated'),
           );
         });
     };
@@ -135,11 +147,33 @@ export class NBURateBotUtils {
       await this._telegramUtils.sendReply(
         ctx,
         isSubscribeAction
-          ? t('t:nbu-exchange-bot-subscribe-already-active')
-          : t('t:nbu-exchange-bot-subscribe-not-active'),
+          ? ctx.t('nbu-exchange-bot-subscribe-already-active')
+          : ctx.t('nbu-exchange-bot-subscribe-not-active'),
       );
     };
 
     return { createUser, updateSubscribe, unableToUpdateSubscribe };
   }
+
+  //  TODO:  remove any call db for get user from other places
+  public updateUserLang = async (
+    ctx: NBURateBotContext,
+    next: NextFunction,
+  ) => {
+    if (!ctx.from?.id) {
+      return;
+    }
+
+    const user = await this._nbuCurrencyBotUser.getUserById(ctx.from.id);
+
+    if (user?.dataValues) {
+      await this._nbuCurrencyBotUser.updateUser(
+        ctx.from.id,
+        user.is_subscribe_active,
+        ctx.from.language_code || DefaultLang,
+      );
+    }
+
+    await next();
+  };
 }

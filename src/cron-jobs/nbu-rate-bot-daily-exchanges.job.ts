@@ -3,17 +3,10 @@ import { CronJob } from 'cron';
 
 import { NBURateBot } from '@telegram/index';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
-import { NBURateBotUtils } from '@telegram/nbu-rate/helpers/nbu-utils';
-import { t } from 'i18next';
-
-/**
- * Every time when we use part of find we cant use TS
- * https://sequelize.org/docs/v7/querying/select-in-depth/
- */
-
-type ChatIdsData = {
-  user_id: number | string;
-};
+import {
+  DefaultLang,
+  NBURateBotUtils,
+} from '@telegram/nbu-rate/helpers/nbu-utils';
 
 @injectable()
 export class NBURateBotDailyExchangesJob {
@@ -36,7 +29,7 @@ export class NBURateBotDailyExchangesJob {
         const convertCurrencyData =
           await this._nbuRateBotUtils.getConvertCurrencyData(
             data,
-            true,
+            false,
             false,
             [],
           );
@@ -45,16 +38,15 @@ export class NBURateBotDailyExchangesJob {
           this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        const chatIds: ChatIdsData[] =
-          await this._nbuCurrencyBotUser.getSubscribersChatIds();
+        const chatIds = await this._nbuCurrencyBotUser.getSubscribersChatIds();
 
-        chatIds.forEach(({ user_id }) => {
+        chatIds?.forEach(({ user_id, lang }) => {
           this._nbuRateBot.bot.api
             .sendMessage(
               user_id,
               this._nbuRateBotUtils.codeMessageCreator(
                 message.table.toString(),
-                `*${t('t:nbu-exchange-bot-today-exchange')}:*\n\n`,
+                `*${this._nbuRateBot.i18n.t(lang || DefaultLang, 'nbu-exchange-bot-today-exchange')}:*\n\n`,
               ),
               { parse_mode: 'MarkdownV2' },
             )

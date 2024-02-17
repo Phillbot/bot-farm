@@ -5,7 +5,7 @@ import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import { NBURateBotUtils } from '@telegram/nbu-rate/helpers/nbu-utils';
 import { TelegramUtils } from '@telegram/telegram-utils';
 
-import { NBURateBotChartBuilder } from '@telegram/nbu-rate/helpers/chart-builder.service';
+import { NBURateBotChartBuilder } from '@utils/chart-builder.service';
 import { NBURateBotPostgresqlSequelize } from '@database/nbu-rate-bot.db';
 
 import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from 'cron-jobs';

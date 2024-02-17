@@ -1,23 +1,44 @@
-import { Bot, Context } from 'grammy';
+import path from 'path';
+
+import { Bot, Context, SessionFlavor, session } from 'grammy';
 import { inject, injectable } from 'inversify';
 
 import { EmojiFlavor, emojiParser } from '@grammyjs/emoji';
-import { TelegramUtils } from '@telegram/telegram-utils';
+import { I18n, I18nFlavor } from '@grammyjs/i18n';
+import { NBURateBotUser } from '@database/nbu-rate-bot.db';
+
 import {
   NBURateBotRateCommand,
   NBURateBotStartCommand,
   NBURateBotSubscribeCommand,
   NBURateBotUnsubscribeCommand,
 } from './commands';
-import { COMMANDS, COMMANDS_DESCRIPTORS } from './helpers/types';
+import { COMMANDS } from './helpers/types';
+import {
+  DefaultLang,
+  NBURateBotUtils,
+  supportLangs,
+} from './helpers/nbu-utils';
 
-export type NBURateBotContext = EmojiFlavor<Context>;
+interface SessionData {
+  __language_code?: string;
+}
+
+export type NBURateBotContext = EmojiFlavor<
+  NBURateBotUser & Context & SessionFlavor<SessionData> & I18nFlavor
+>;
 
 @injectable()
 export class NBURateBot {
   private readonly _bot = new Bot<NBURateBotContext>(
     process.env.NBU_RATE_BOT_TOKEN as string,
   );
+
+  private readonly _i18n = new I18n<NBURateBotContext>({
+    defaultLocale: 'uk',
+    useSession: true,
+    directory: path.join(__dirname, './locales'),
+  });
 
   constructor(
     @inject(NBURateBotStartCommand)
@@ -28,11 +49,21 @@ export class NBURateBot {
     private _nbuRateBotSubscribeCommand: NBURateBotSubscribeCommand,
     @inject(NBURateBotUnsubscribeCommand)
     private _nbuRateBotUnsubscribeCommand: NBURateBotUnsubscribeCommand,
-    @inject(TelegramUtils)
-    private _telegramUtils: TelegramUtils,
+    @inject(NBURateBotUtils)
+    private _nbuRateBotUtils: NBURateBotUtils,
   ) {
     this._bot.use(emojiParser());
-    this._bot.use(this._telegramUtils.changeLangMiddleware);
+
+    this._bot.use(
+      session({
+        initial: () => {
+          return {};
+        },
+      }),
+    );
+
+    this._bot.use(this._i18n);
+    this._bot.use(this._nbuRateBotUtils.updateUserLang);
 
     this.init();
 
@@ -61,25 +92,48 @@ export class NBURateBot {
   }
 
   private async init() {
-    await this._bot.api.setMyCommands([
-      { command: COMMANDS.START, description: COMMANDS_DESCRIPTORS.START },
-      {
-        command: COMMANDS.RATE,
-        description: COMMANDS_DESCRIPTORS.RATE,
-      },
-      {
-        command: COMMANDS.RATE_MAIN,
-        description: COMMANDS_DESCRIPTORS.RATE_MAIN,
-      },
-      {
-        command: COMMANDS.SUBSCRIBE,
-        description: COMMANDS_DESCRIPTORS.SUBSCRIBE,
-      },
-      {
-        command: COMMANDS.UNSUBSCRIBE,
-        description: COMMANDS_DESCRIPTORS.UNSUBSCRIBE,
-      },
-    ]);
+    await supportLangs.forEach((lang) => {
+      this._bot.api.setMyCommands(
+        [
+          {
+            command: COMMANDS.START,
+            description: this._i18n.t(
+              lang,
+              'nbu-exchange-bot-start-command-descriptor',
+            ),
+          },
+          {
+            command: COMMANDS.RATE,
+            description: this._i18n.t(
+              lang,
+              'nbu-exchange-bot-rate-command-descriptor',
+            ),
+          },
+          {
+            command: COMMANDS.RATE_MAIN,
+            description: this._i18n.t(
+              lang,
+              'nbu-exchange-bot-rate-main-command-descriptor',
+            ),
+          },
+          {
+            command: COMMANDS.SUBSCRIBE,
+            description: this._i18n.t(
+              lang,
+              'nbu-exchange-bot-subscribe-command-descriptor',
+            ),
+          },
+          {
+            command: COMMANDS.UNSUBSCRIBE,
+            description: this._i18n.t(
+              lang,
+              'nbu-exchange-bot-unsubscribe-command-descriptor',
+            ),
+          },
+        ],
+        { language_code: lang === DefaultLang ? undefined : lang },
+      );
+    });
 
     await this._bot.start({
       onStart: (bot) => {
@@ -92,5 +146,9 @@ export class NBURateBot {
 
   public get bot() {
     return this._bot;
+  }
+
+  public get i18n() {
+    return this._i18n;
   }
 }
