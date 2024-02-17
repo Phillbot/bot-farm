@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import '@config/i18n.config';
 import container from '@config/inversify.config';
 
 import { expressServer } from './server';

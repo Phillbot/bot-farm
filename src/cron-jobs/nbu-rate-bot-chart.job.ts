@@ -2,20 +2,12 @@ import moment from 'moment';
 import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
-import { t } from 'i18next';
 
-import { NBURateBotChartBuilder } from '../telegram/nbu-rate/helpers/chart-builder.service';
+import { DefaultLang } from '@telegram/nbu-rate/helpers/nbu-utils';
+import { NBURateBotChartBuilder } from '@utils/chart-builder.service';
+
 import { NBUCurrencyBotUser } from '../database/nbu-rate-bot-user.entity';
 import { NBURateBot } from '../telegram/nbu-rate/nbu-rate.bot';
-
-/**
- * Every time when we use part of find we cant use TS
- * https://sequelize.org/docs/v7/querying/select-in-depth/
- */
-
-type ChatIdsData = {
-  user_id: number | string;
-};
 
 @injectable()
 export class NBURateBotChartJob {
@@ -49,12 +41,13 @@ export class NBURateBotChartJob {
           this._nbuRateBotChartBuilder.dates.endDate,
         ).format('YYYY.MM.DD');
 
-        chatIds.forEach(({ user_id }) => {
+        chatIds.forEach(({ user_id, lang }) => {
           this._nbuRateBot.bot.api
             .sendPhoto(user_id, new InputFile(chart), {
               parse_mode: 'HTML',
-              caption: `<b>Weekly Chart</b>\n\n<code>${t(
-                't:nbu-exchange-bot-chart-period',
+              caption: `<b>Weekly Chart</b>\n\n<code>${this._nbuRateBot.i18n.t(
+                lang || DefaultLang,
+                'nbu-exchange-bot-chart-period',
                 {
                   startDate,
                   endDate,

@@ -1,9 +1,26 @@
 import { injectable } from 'inversify';
-import { DataTypes, Sequelize } from 'sequelize';
+import {
+  CreationOptional,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  Sequelize,
+} from 'sequelize';
 
 enum NBU_RATE_BOT_CONNECTION_DATA {
   TABLE_SUBSCRIBERS = 'bot_subscribers',
   SCHEMA_SUBSCRIBERS = 'nbu_exchange',
+}
+
+export class NBURateBotUser extends Model<
+  InferAttributes<NBURateBotUser>,
+  InferCreationAttributes<NBURateBotUser>
+> {
+  declare user_id: number;
+  declare user_name: CreationOptional<string>;
+  declare is_subscribe_active: boolean;
+  declare lang: string;
 }
 
 @injectable()
@@ -12,24 +29,13 @@ export class NBURateBotPostgresqlSequelize {
     process.env.POSTGRESQL_DATABASE_CONNECT_URL as string,
     {
       logging: process.env.ENV === 'development',
+      define: {
+        hooks: {},
+      },
     },
   );
 
-  constructor() {
-    this._connect
-      .authenticate()
-      .then(() =>
-        // eslint-disable-next-line
-        console.table({ database: 'postgresqlSequelize', status: 'ok' }),
-      )
-      // eslint-disable-next-line
-      .catch((error) => console.error(error));
-  }
-
-  // models, can be separate
-
-  public nbuRateBotUsersModel = this._connect.define(
-    NBU_RATE_BOT_CONNECTION_DATA.TABLE_SUBSCRIBERS,
+  private readonly _user = NBURateBotUser.init(
     {
       user_id: {
         type: DataTypes.INTEGER,
@@ -45,10 +51,31 @@ export class NBURateBotPostgresqlSequelize {
         type: DataTypes.BOOLEAN,
         allowNull: false,
       },
+      lang: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
     {
       schema: NBU_RATE_BOT_CONNECTION_DATA.SCHEMA_SUBSCRIBERS,
+      tableName: NBU_RATE_BOT_CONNECTION_DATA.TABLE_SUBSCRIBERS,
       timestamps: false,
+      sequelize: this._connect,
     },
   );
+
+  constructor() {
+    this._connect
+      .authenticate()
+      .then(() =>
+        // eslint-disable-next-line
+        console.table({ database: 'postgresqlSequelize', status: 'ok' }),
+      )
+      // eslint-disable-next-line
+      .catch((error) => console.error(error));
+  }
+
+  get user() {
+    return this._user;
+  }
 }
