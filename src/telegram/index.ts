@@ -1,1 +1,1 @@
-export * from './nbu-rate/nbu-rate.bot';
+export * from './nbu-rate-bot/nbu-rate.bot';

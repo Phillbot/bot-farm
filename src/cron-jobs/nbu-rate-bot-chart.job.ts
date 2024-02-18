@@ -3,21 +3,33 @@ import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
 
-import { DefaultLang } from '@telegram/nbu-rate/helpers/nbu-utils';
-import { NBURateBotChartBuilder } from '@utils/chart-builder.service';
+import {
+  DefaultLang,
+  NBURateBotUtils,
+} from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
+import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { NBURateBot } from '@telegram/index';
 
-import { NBUCurrencyBotUser } from '../database/nbu-rate-bot-user.entity';
-import { NBURateBot } from '../telegram/nbu-rate/nbu-rate.bot';
+import { nbuRateBotTimezone } from './utils';
 
 @injectable()
 export class NBURateBotChartJob {
+  private readonly _startDate = moment().startOf('month').format('YYYYMMDD'); // move to ENV?
+  private readonly _endDate = moment().format('YYYYMMDD');
+  private readonly _nbuRateChartBuilderService = new NBURateBotChartBuilder(
+    this._nbuRateBotUtils,
+    this._startDate,
+    this._endDate,
+  );
+
   constructor(
-    @inject(NBURateBotChartBuilder)
-    private readonly _nbuRateBotChartBuilder: NBURateBotChartBuilder,
     @inject(NBUCurrencyBotUser)
     private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
     @inject(NBURateBot)
     private readonly _nbuRateBot: NBURateBot,
+    @inject(NBURateBotUtils)
+    private readonly _nbuRateBotUtils: NBURateBotUtils,
   ) {
     this.chartSenderJob().start();
   }
@@ -26,22 +38,16 @@ export class NBURateBotChartJob {
     return CronJob.from({
       cronTime: process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA as string,
       onTick: async () => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const chatIds: ChatIdsData[] =
-          await this._nbuCurrencyBotUser.getSubscribersChatIds();
-
-        const chart = await this._nbuRateBotChartBuilder.build();
-
+        const chatIds = await this._nbuCurrencyBotUser.getSubscribers();
+        const chart = await this._nbuRateChartBuilderService.build();
         const startDate = moment(
-          this._nbuRateBotChartBuilder.dates.startDate,
+          this._nbuRateChartBuilderService.dates.startDate,
         ).format('YYYY.MM.DD');
-
         const endDate = moment(
-          this._nbuRateBotChartBuilder.dates.endDate,
+          this._nbuRateChartBuilderService.dates.endDate,
         ).format('YYYY.MM.DD');
 
-        chatIds.forEach(({ user_id, lang }) => {
+        chatIds?.forEach(({ user_id, lang }) => {
           this._nbuRateBot.bot.api
             .sendPhoto(user_id, new InputFile(chart), {
               parse_mode: 'HTML',
@@ -60,7 +66,7 @@ export class NBURateBotChartJob {
             });
         });
       },
-      timeZone: 'Europe/Kyiv',
+      timeZone: nbuRateBotTimezone,
     });
   }
 }

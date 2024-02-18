@@ -4,7 +4,7 @@ import { CommandContext } from 'grammy';
 import { TelegramUtils } from '@telegram/telegram-utils';
 
 import { NBURateBotContext } from '../nbu-rate.bot';
-import { NBURateBotUtils, currencies } from '../helpers/nbu-utils';
+import { NBURateBotUtils, currencies } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotRateCommand {

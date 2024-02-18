@@ -18,6 +18,7 @@ export class TableCreator {
     const table = new PrettyTable();
     this.header != null && table.setHeader(this.header);
     table.addRows(this.body);
+
     return table;
   }
 }

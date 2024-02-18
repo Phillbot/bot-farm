@@ -1,20 +1,16 @@
-import moment from 'moment';
 import uniqolor from 'uniqolor';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration } from 'chart.js';
-import { inject, injectable } from 'inversify';
 
-import { NBURateBotUtils } from '@telegram/nbu-rate/helpers/nbu-utils';
+import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
-@injectable()
+// TODO: put it to inversify
 export class NBURateBotChartBuilder {
-  // TODO: use prop from caller class
-  private readonly _startDate = moment().startOf('month').format('YYYYMMDD'); // move to ENV?
-  private readonly _endDate = moment().format('YYYYMMDD');
-
   constructor(
-    @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
+    private readonly _nbuRateBotUtils: NBURateBotUtils,
+    private readonly _startDate: string,
+    private readonly _endDate: string,
   ) {}
 
   public async build() {

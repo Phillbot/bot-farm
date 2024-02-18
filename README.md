@@ -13,8 +13,9 @@ TODO:
 - connect JIRA (?)
 - custom reglament time (?)
 - queue + redis (?)
+- webpack for build all file types
 
-\*Can be improve with namespaces and types config
+\*Use grammy i18n
 \*\*At this moment its control by telegram because almost request send to telegram API
 
 **ENV vars**
@@ -29,4 +30,5 @@ TODO:
 | NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL | string                    |
 | NBU_RATE_EXCHANGE_CURRENCIES               | string (split by ,)       |
 | NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA        | \* \* \* \* \*            |
+| NBU_RATE_EXCHANGE_CRON_TIMEZONE            | string                    |
 | POSTGRESQL_DATABASE_CONNECT_URL            | string                    |

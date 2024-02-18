@@ -6,12 +6,15 @@ import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import {
   DefaultLang,
   NBURateBotUtils,
-} from '@telegram/nbu-rate/helpers/nbu-utils';
+} from '@telegram/nbu-rate-bot/nbu-rate.utils';
+
+import { nbuRateBotTimezone } from './utils';
 
 @injectable()
 export class NBURateBotDailyExchangesJob {
   constructor(
-    @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
+    @inject(NBURateBotUtils)
+    private readonly _nbuRateBotUtils: NBURateBotUtils,
     @inject(NBUCurrencyBotUser)
     private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
     @inject(NBURateBot)
@@ -36,9 +39,8 @@ export class NBURateBotDailyExchangesJob {
 
         const message =
           this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const chatIds = await this._nbuCurrencyBotUser.getSubscribersChatIds();
+
+        const chatIds = await this._nbuCurrencyBotUser.getSubscribers();
 
         chatIds?.forEach(({ user_id, lang }) => {
           this._nbuRateBot.bot.api
@@ -56,7 +58,7 @@ export class NBURateBotDailyExchangesJob {
             });
         });
       },
-      timeZone: 'Europe/Kyiv',
+      timeZone: nbuRateBotTimezone,
     });
   }
 }
