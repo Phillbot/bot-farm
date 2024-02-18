@@ -7,7 +7,7 @@
     "prestart": "npm run build",
     "start": "node dist/index.js",
     "start:dev": "npx nodemon",
-    "build": "rm -rf ./dist && tsc && tsc-alias",
+    "build": "rm -rf ./dist && tsc && tsc-alias && node helpers/copy-dir.ts",
     "prettier": "prettier --write \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "prettier:check": "prettier -c \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "lint": "eslint  --ext .tsx,.ts --fix src/",
