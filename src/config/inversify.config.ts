@@ -6,7 +6,7 @@ import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from 'cron-jobs';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { TelegramUtils } from '@telegram/telegram-utils';
-// import { NBURateBotChartBuilder } from '@utils/chart-builder.service';
+import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { NBURateBotPostgresqlSequelize } from '@database/nbu-rate-bot.db';
 import { NBURateBot } from '@telegram/index';
 import {
@@ -31,7 +31,7 @@ container
   .bind<NBURateBotUnsubscribeCommand>(NBURateBotUnsubscribeCommand)
   .toSelf();
 
-// container.bind<NBURateBotChartBuilder>(NBURateBotChartBuilder).toSelf();
+container.bind<NBURateBotChartBuilder>(NBURateBotChartBuilder).toSelf();
 
 container.bind<NBURateBotChartJob>(NBURateBotChartJob).toSelf();
 container

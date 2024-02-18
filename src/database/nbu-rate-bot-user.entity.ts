@@ -1,6 +1,9 @@
 import { inject, injectable } from 'inversify';
 
-import { NBURateBotPostgresqlSequelize } from '@database/nbu-rate-bot.db';
+import {
+  NBURateBotPostgresqlSequelize,
+  SubscriberUserIdType,
+} from '@database/nbu-rate-bot.db';
 
 @injectable()
 export class NBUCurrencyBotUser {
@@ -19,7 +22,6 @@ export class NBUCurrencyBotUser {
     );
   }
 
-  // TODO: type for part , add attributes
   public async getSubscribers() {
     return (
       this._nbuRateBotPostgresqlSequelize.user
@@ -28,6 +30,21 @@ export class NBUCurrencyBotUser {
           where: {
             is_subscribe_active: true,
           },
+        })
+        // eslint-disable-next-line
+        .catch((e) => console.log(e))
+    );
+  }
+
+  public async getSubscribersUserIds(): Promise<void | SubscriberUserIdType[]> {
+    return (
+      this._nbuRateBotPostgresqlSequelize.user
+        .findAll({
+          raw: true,
+          where: {
+            is_subscribe_active: true,
+          },
+          attributes: ['user_id', 'lang'],
         })
         // eslint-disable-next-line
         .catch((e) => console.log(e))

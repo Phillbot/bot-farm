@@ -13,6 +13,8 @@ enum NBU_RATE_BOT_CONNECTION_DATA {
   SCHEMA_SUBSCRIBERS = 'nbu_exchange',
 }
 
+export type SubscriberUserIdType = Pick<NBURateBotUser, 'user_id' | 'lang'>;
+
 export class NBURateBotUser extends Model<
   InferAttributes<NBURateBotUser>,
   InferCreationAttributes<NBURateBotUser>

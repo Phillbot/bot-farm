@@ -27,36 +27,55 @@ export class NBURateBotDailyExchangesJob {
     return CronJob.from({
       cronTime: process.env.NBU_RATE_CRON_SCHEMA as string,
       onTick: async () => {
-        const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
+        const subscribersUserIds =
+          await this._nbuCurrencyBotUser.getSubscribersUserIds();
 
-        const convertCurrencyData =
-          await this._nbuRateBotUtils.getConvertCurrencyData(
-            data,
-            false,
-            false,
-            [],
-          );
+        if (subscribersUserIds?.length) {
+          const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
 
-        const message =
-          this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
+          const convertCurrencyData =
+            await this._nbuRateBotUtils.getConvertCurrencyData(
+              data,
+              false,
+              false,
+              [],
+            );
 
-        const chatIds = await this._nbuCurrencyBotUser.getSubscribers();
+          const message =
+            this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
 
-        chatIds?.forEach(({ user_id, lang }) => {
-          this._nbuRateBot.bot.api
-            .sendMessage(
-              user_id,
-              this._nbuRateBotUtils.codeMessageCreator(
-                message.table.toString(),
-                `*${this._nbuRateBot.i18n.t(lang || DefaultLang, 'nbu-exchange-bot-today-exchange')}:*\n\n`,
-              ),
-              { parse_mode: 'MarkdownV2' },
-            )
-            .catch((error) => {
-              // eslint-disable-next-line
-              console.log(error);
-            });
-        });
+          const tasks = [];
+
+          for (let i = 0; i < subscribersUserIds.length; i++) {
+            const delay = 250 * i;
+
+            tasks.push(
+              new Promise(async (resolve) => {
+                await new Promise((res) => {
+                  setTimeout(res, delay);
+                });
+
+                const result = await new Promise((r) => {
+                  this._nbuRateBot.bot.api.sendMessage(
+                    subscribersUserIds[i].user_id,
+                    this._nbuRateBotUtils.codeMessageCreator(
+                      message.table.toString(),
+                      `*${this._nbuRateBot.i18n.t(subscribersUserIds[i].lang || DefaultLang, 'nbu-exchange-bot-today-exchange')}:*\n\n`,
+                    ),
+                    { parse_mode: 'MarkdownV2' },
+                  );
+
+                  r(delay);
+                });
+
+                resolve(result);
+              }),
+            );
+          }
+          // TODO: move it to separately function
+          // eslint-disable-next-line
+          Promise.all(tasks).catch((e) => console.error(e));
+        }
       },
       timeZone: nbuRateBotTimezone,
     });

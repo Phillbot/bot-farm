@@ -1,6 +1,13 @@
 import path from 'path';
 
-import { Bot, Context, SessionFlavor, session } from 'grammy';
+import {
+  Bot,
+  Context,
+  GrammyError,
+  HttpError,
+  SessionFlavor,
+  session,
+} from 'grammy';
 import { inject, injectable } from 'inversify';
 
 import { EmojiFlavor, emojiParser } from '@grammyjs/emoji';
@@ -67,9 +74,24 @@ export class NBURateBot {
     this.init();
 
     this.commands();
+
     // errors
-    // eslint-disable-next-line
-    this._bot.catch((e) => console.log(e));
+    this._bot.catch((err) => {
+      const ctx = err.ctx;
+      // eslint-disable-next-line
+      console.error(`Error while handling update ${ctx.update.update_id}:`);
+      const e = err.error;
+      if (e instanceof GrammyError) {
+        // eslint-disable-next-line
+        console.error('Error in request:', e.description);
+      } else if (e instanceof HttpError) {
+        // eslint-disable-next-line
+        console.error('Could not contact Telegram:', e);
+      } else {
+        // eslint-disable-next-line
+        console.error('Unknown error:', e);
+      }
+    });
   }
 
   private commands() {

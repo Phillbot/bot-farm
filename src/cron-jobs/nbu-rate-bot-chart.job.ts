@@ -3,12 +3,9 @@ import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
 
-import {
-  DefaultLang,
-  NBURateBotUtils,
-} from '@telegram/nbu-rate-bot/nbu-rate.utils';
-import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
+import { DefaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { NBURateBot } from '@telegram/index';
 
 import { nbuRateBotTimezone } from './utils';
@@ -17,20 +14,17 @@ import { nbuRateBotTimezone } from './utils';
 export class NBURateBotChartJob {
   private readonly _startDate = moment().startOf('month').format('YYYYMMDD'); // move to ENV?
   private readonly _endDate = moment().format('YYYYMMDD');
-  private readonly _nbuRateChartBuilderService = new NBURateBotChartBuilder(
-    this._nbuRateBotUtils,
-    this._startDate,
-    this._endDate,
-  );
 
   constructor(
     @inject(NBUCurrencyBotUser)
     private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
     @inject(NBURateBot)
     private readonly _nbuRateBot: NBURateBot,
-    @inject(NBURateBotUtils)
-    private readonly _nbuRateBotUtils: NBURateBotUtils,
+
+    @inject(NBURateBotChartBuilder)
+    private readonly _nbuRateBotChartBuilder: NBURateBotChartBuilder,
   ) {
+    this._nbuRateBotChartBuilder.setDates(this._startDate, this._endDate);
     this.chartSenderJob().start();
   }
 
@@ -38,35 +32,63 @@ export class NBURateBotChartJob {
     return CronJob.from({
       cronTime: process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA as string,
       onTick: async () => {
-        const chatIds = await this._nbuCurrencyBotUser.getSubscribers();
-        const chart = await this._nbuRateChartBuilderService.build();
-        const startDate = moment(
-          this._nbuRateChartBuilderService.dates.startDate,
-        ).format('YYYY.MM.DD');
-        const endDate = moment(
-          this._nbuRateChartBuilderService.dates.endDate,
-        ).format('YYYY.MM.DD');
+        const subscribersUserIds =
+          await this._nbuCurrencyBotUser.getSubscribersUserIds();
+        const chart = await this._nbuRateBotChartBuilder.build();
 
-        chatIds?.forEach(({ user_id, lang }) => {
-          this._nbuRateBot.bot.api
-            .sendPhoto(user_id, new InputFile(chart), {
-              parse_mode: 'HTML',
-              caption: `<b>Weekly Chart</b>\n\n<code>${this._nbuRateBot.i18n.t(
-                lang || DefaultLang,
-                'nbu-exchange-bot-chart-period',
-                {
-                  startDate,
-                  endDate,
-                },
-              )}</code>`,
-            })
-            .catch((error) => {
-              // eslint-disable-next-line
-              console.log(error);
-            });
-        });
+        if (subscribersUserIds?.length) {
+          const tasks = [];
+
+          for (let i = 0; i < subscribersUserIds.length; i++) {
+            const delay = 250 * i;
+
+            tasks.push(
+              new Promise(async (resolve) => {
+                await new Promise((res) => setTimeout(res, delay));
+
+                const result = await new Promise((r) => {
+                  this._nbuRateBot.bot.api.sendPhoto(
+                    subscribersUserIds[i].user_id,
+                    new InputFile(chart),
+                    {
+                      parse_mode: 'HTML',
+                      caption: createCaption(
+                        this._nbuRateBot,
+                        this._nbuRateBotChartBuilder.dates.startDate,
+                        this._nbuRateBotChartBuilder.dates.endDate,
+                        subscribersUserIds[i].lang,
+                      ),
+                    },
+                  );
+
+                  r(delay);
+                });
+
+                resolve(result);
+              }),
+            );
+          }
+          // eslint-disable-next-line
+          Promise.all(tasks).catch((e) => console.error(e));
+        }
       },
       timeZone: nbuRateBotTimezone,
     });
   }
+}
+
+function createCaption(
+  nbuRateBot: NBURateBot,
+  startDate: string,
+  endDate: string,
+  lang: string,
+) {
+  return `<b>Weekly Chart</b>\n\n<code>${nbuRateBot.i18n.t(
+    lang || DefaultLang,
+    'nbu-exchange-bot-chart-period',
+    {
+      startDate: moment(startDate).format('YYYY.MM.DD'),
+      endDate: moment(endDate).format('YYYY.MM.DD'),
+    },
+  )}</code>`;
 }
