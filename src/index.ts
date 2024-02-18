@@ -1,9 +1,10 @@
 import 'dotenv/config';
+
 import container from '@config/inversify.config';
 
+import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from './cron-jobs';
 import { expressServer } from './server';
 import { NBURateBot } from './telegram';
-import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from './cron-jobs';
 
 (() => {
   expressServer.listen();

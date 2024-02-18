@@ -13,19 +13,18 @@ import {
   NBURateBotSubscribeCommand,
   NBURateBotUnsubscribeCommand,
 } from './commands';
-import { COMMANDS } from './helpers/types';
-import {
-  DefaultLang,
-  NBURateBotUtils,
-  supportLangs,
-} from './helpers/nbu-utils';
+import { COMMANDS } from './types';
+import { DefaultLang, NBURateBotUtils, supportLangs } from './nbu-rate.utils';
 
 interface SessionData {
   __language_code?: string;
 }
 
 export type NBURateBotContext = EmojiFlavor<
-  NBURateBotUser & Context & SessionFlavor<SessionData> & I18nFlavor
+  Pick<NBURateBotUser, 'dataValues'> &
+    Context &
+    SessionFlavor<SessionData> &
+    I18nFlavor
 >;
 
 @injectable()

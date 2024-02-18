@@ -1,22 +1,20 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
 
-import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
-import { NBURateBotUtils } from '@telegram/nbu-rate/helpers/nbu-utils';
-import { TelegramUtils } from '@telegram/telegram-utils';
-
-import { NBURateBotChartBuilder } from '@utils/chart-builder.service';
-import { NBURateBotPostgresqlSequelize } from '@database/nbu-rate-bot.db';
-
 import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from 'cron-jobs';
+
+import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { TelegramUtils } from '@telegram/telegram-utils';
+// import { NBURateBotChartBuilder } from '@utils/chart-builder.service';
+import { NBURateBotPostgresqlSequelize } from '@database/nbu-rate-bot.db';
+import { NBURateBot } from '@telegram/index';
 import {
   NBURateBotRateCommand,
   NBURateBotStartCommand,
   NBURateBotSubscribeCommand,
   NBURateBotUnsubscribeCommand,
-} from '@telegram/nbu-rate/commands';
-
-import { NBURateBot } from '../telegram';
+} from '@telegram/nbu-rate-bot/commands';
 
 const container = new Container({ defaultScope: 'Singleton' });
 container.bind<NBURateBot>(NBURateBot).toSelf();
@@ -33,7 +31,7 @@ container
   .bind<NBURateBotUnsubscribeCommand>(NBURateBotUnsubscribeCommand)
   .toSelf();
 
-container.bind<NBURateBotChartBuilder>(NBURateBotChartBuilder).toSelf();
+// container.bind<NBURateBotChartBuilder>(NBURateBotChartBuilder).toSelf();
 
 container.bind<NBURateBotChartJob>(NBURateBotChartJob).toSelf();
 container

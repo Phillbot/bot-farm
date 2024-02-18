@@ -4,9 +4,9 @@ import { CommandContext, NextFunction } from 'grammy';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
 import { TableCreator } from '@utils/table-creator';
+import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 
-import { NBURateBotContext } from '../nbu-rate.bot';
-import { NBUCurrencyBotUser } from '../../../database/nbu-rate-bot-user.entity';
+import { NBURateBotContext } from './nbu-rate.bot';
 
 import {
   MainCommandType,
@@ -155,7 +155,7 @@ export class NBURateBotUtils {
     return { createUser, updateSubscribe, unableToUpdateSubscribe };
   }
 
-  //  TODO:  remove any call db for get user from other places
+  // TODO: separate update lang and get user middlewares
   public updateUserLang = async (
     ctx: NBURateBotContext,
     next: NextFunction,
@@ -167,11 +167,15 @@ export class NBURateBotUtils {
     const user = await this._nbuCurrencyBotUser.getUserById(ctx.from.id);
 
     if (user?.dataValues) {
-      await this._nbuCurrencyBotUser.updateUser(
-        ctx.from.id,
-        user.is_subscribe_active,
-        ctx.from.language_code || DefaultLang,
-      );
+      if (user.dataValues.lang !== ctx.from.language_code) {
+        await this._nbuCurrencyBotUser.updateUser(
+          ctx.from.id,
+          user.is_subscribe_active,
+          ctx.from.language_code || DefaultLang,
+        );
+      }
+
+      ctx.dataValues = user?.dataValues;
     }
 
     await next();
