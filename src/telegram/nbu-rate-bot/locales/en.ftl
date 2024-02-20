@@ -8,6 +8,8 @@ nbu-exchange-bot-subscribe-already-active = Subscribe  already active
 nbu-exchange-bot-subscribe-activated = Subscribe activated!
 nbu-exchange-bot-today-exchange = Today NBU exchange
 nbu-exchange-bot-chart-period = Period from { $startDate } to { $endDate }
+nbu-exchange-bot-currency = Currency
+nbu-exchange-bot-rate = Rate
 
 nbu-exchange-bot-start-command-descriptor = Welcome, friend!
 nbu-exchange-bot-subscribe-command-descriptor  = Will send exchange to user automatically 2 times per day

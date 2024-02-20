@@ -2,6 +2,7 @@ import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 
 import { NBURateBot } from '@telegram/index';
+import { TableCreator } from '@utils/table-creator';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import {
   DefaultLang,
@@ -33,21 +34,27 @@ export class NBURateBotDailyExchangesJob {
         if (subscribersUserIds?.length) {
           const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
 
-          const convertCurrencyData =
-            await this._nbuRateBotUtils.getConvertCurrencyData(
-              data,
-              false,
-              false,
-              [],
-            );
-
-          const message =
-            this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
+          const { headerKeys, body } = await this._nbuRateBotUtils.getTableData(
+            data,
+            false,
+            false,
+            [],
+          );
 
           const tasks = [];
 
           for (let i = 0; i < subscribersUserIds.length; i++) {
             const delay = 250 * i;
+
+            const message = this._nbuRateBotUtils.codeMessageCreator(
+              new TableCreator(
+                headerKeys.map((k) =>
+                  this._nbuRateBot.i18n.t(subscribersUserIds[i].lang, k),
+                ),
+                body,
+              ).table.toString(),
+              `*${this._nbuRateBot.i18n.t(subscribersUserIds[i].lang || DefaultLang, 'nbu-exchange-bot-today-exchange')}:*\n\n`,
+            );
 
             tasks.push(
               new Promise(async (resolve) => {
@@ -56,14 +63,12 @@ export class NBURateBotDailyExchangesJob {
                 });
 
                 const result = await new Promise((r) => {
-                  this._nbuRateBot.bot.api.sendMessage(
-                    subscribersUserIds[i].user_id,
-                    this._nbuRateBotUtils.codeMessageCreator(
-                      message.table.toString(),
-                      `*${this._nbuRateBot.i18n.t(subscribersUserIds[i].lang || DefaultLang, 'nbu-exchange-bot-today-exchange')}:*\n\n`,
-                    ),
-                    { parse_mode: 'MarkdownV2' },
-                  );
+                  this._nbuRateBot.bot.api
+                    .sendMessage(subscribersUserIds[i].user_id, message, {
+                      parse_mode: 'MarkdownV2',
+                    })
+                    // eslint-disable-next-line
+                    .catch((e) => console.error('exchangeTableSender', e));
 
                   r(delay);
                 });
@@ -72,7 +77,6 @@ export class NBURateBotDailyExchangesJob {
               }),
             );
           }
-          // TODO: move it to separately function
           // eslint-disable-next-line
           Promise.all(tasks).catch((e) => console.error(e));
         }

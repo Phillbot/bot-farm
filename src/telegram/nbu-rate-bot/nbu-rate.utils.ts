@@ -3,7 +3,6 @@ import axios, { AxiosResponse } from 'axios';
 import { CommandContext, NextFunction } from 'grammy';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
-import { TableCreator } from '@utils/table-creator';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 
 import { NBURateBotContext } from './nbu-rate.bot';
@@ -53,13 +52,20 @@ export class NBURateBotUtils {
       : [];
   }
 
-  public getConvertCurrencyData = (
+  public getTableData = (
     data: NBURateType[],
     fullList: boolean,
     isExistAdditionalCurrency: boolean,
     matchedCurrenciesFromCommand: string[],
-  ): (string | number)[][] => {
-    return data
+  ): { headerKeys: string[]; body: (string | number)[][] } => {
+    const schema = {
+      cc: 'nbu-exchange-bot-currency',
+      rate: 'nbu-exchange-bot-rate',
+    };
+
+    const headerKeys: string[] = Object.values(schema);
+
+    const body = data
       .filter((rate) => {
         if (!fullList) {
           return mainCurrencies.includes(rate.cc);
@@ -70,15 +76,13 @@ export class NBURateBotUtils {
               currencies.includes(rate.cc)
           : rate;
       })
-      .map(({ r030, cc, rate }: NBURateType) => [r030, cc, rate]);
+      .map(({ cc, rate }: NBURateType) => [cc, rate]);
+
+    return {
+      headerKeys,
+      body,
+    };
   };
-
-  public createMessageWithTable(body: (string | number)[][]): TableCreator {
-    const header = ['Code', 'Currency', 'Rate'];
-    const nbuTable = new TableCreator(header, body);
-
-    return nbuTable;
-  }
 
   public codeMessageCreator(message: string, prefix: string = ''): string {
     return `${prefix}\`\`\`${message}\`\`\``;

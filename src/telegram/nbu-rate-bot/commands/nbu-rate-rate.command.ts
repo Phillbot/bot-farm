@@ -2,6 +2,7 @@ import { inject, injectable } from 'inversify';
 import { CommandContext } from 'grammy';
 
 import { TelegramUtils } from '@telegram/telegram-utils';
+import { TableCreator } from '@utils/table-creator';
 
 import { NBURateBotContext } from '../nbu-rate.bot';
 import { NBURateBotUtils, currencies } from '../nbu-rate.utils';
@@ -27,20 +28,21 @@ export class NBURateBotRateCommand {
 
     const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
 
-    const convertCurrencyData =
-      await this._nbuRateBotUtils.getConvertCurrencyData(
-        data,
-        fullList,
-        isExistAdditionalCurrency,
-        matchedCurrenciesFromCommand,
-      );
-
-    const message =
-      this._nbuRateBotUtils.createMessageWithTable(convertCurrencyData);
+    const { headerKeys, body } = await this._nbuRateBotUtils.getTableData(
+      data,
+      fullList,
+      isExistAdditionalCurrency,
+      matchedCurrenciesFromCommand,
+    );
 
     await this._telegramUtils.sendReply<NBURateBotContext>(
       ctx,
-      this._nbuRateBotUtils.codeMessageCreator(message.table.toString()),
+      this._nbuRateBotUtils.codeMessageCreator(
+        new TableCreator(
+          headerKeys.map((k) => ctx.t(k)),
+          body,
+        ).table.toString(),
+      ),
       'MarkdownV2',
     );
   }

@@ -34,9 +34,9 @@ export class NBURateBotChartJob {
       onTick: async () => {
         const subscribersUserIds =
           await this._nbuCurrencyBotUser.getSubscribersUserIds();
-        const chart = await this._nbuRateBotChartBuilder.build();
 
         if (subscribersUserIds?.length) {
+          const chart = await this._nbuRateBotChartBuilder.build();
           const tasks = [];
 
           for (let i = 0; i < subscribersUserIds.length; i++) {
@@ -47,19 +47,22 @@ export class NBURateBotChartJob {
                 await new Promise((res) => setTimeout(res, delay));
 
                 const result = await new Promise((r) => {
-                  this._nbuRateBot.bot.api.sendPhoto(
-                    subscribersUserIds[i].user_id,
-                    new InputFile(chart),
-                    {
-                      parse_mode: 'HTML',
-                      caption: createCaption(
-                        this._nbuRateBot,
-                        this._nbuRateBotChartBuilder.dates.startDate,
-                        this._nbuRateBotChartBuilder.dates.endDate,
-                        subscribersUserIds[i].lang,
-                      ),
-                    },
-                  );
+                  this._nbuRateBot.bot.api
+                    .sendPhoto(
+                      subscribersUserIds[i].user_id,
+                      new InputFile(chart),
+                      {
+                        parse_mode: 'HTML',
+                        caption: createCaption(
+                          this._nbuRateBot,
+                          this._nbuRateBotChartBuilder.dates.startDate,
+                          this._nbuRateBotChartBuilder.dates.endDate,
+                          subscribersUserIds[i].lang,
+                        ),
+                      },
+                    )
+                    // eslint-disable-next-line
+                    .catch((e) => console.error('chartSenderJob', e));
 
                   r(delay);
                 });

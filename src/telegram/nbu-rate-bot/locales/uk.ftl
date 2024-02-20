@@ -8,6 +8,8 @@ nbu-exchange-bot-subscribe-already-active = Підписку активован�
 nbu-exchange-bot-subscribe-activated = Підписку активовано!
 nbu-exchange-bot-today-exchange = Курс НБУ на сьогодні
 nbu-exchange-bot-chart-period = Період з { $startDate } по { $endDate }
+nbu-exchange-bot-currency = Валюта
+nbu-exchange-bot-rate = Курс
 
 nbu-exchange-bot-start-command-descriptor = Привіт, друже
 nbu-exchange-bot-subscribe-command-descriptor  = Автоматично надсилатиме курс користувачеві 2 рази на день
