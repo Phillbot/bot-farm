@@ -1,38 +1,47 @@
 import express from 'express';
-import { Random } from 'some-random-cat';
+import { inject, injectable } from 'inversify';
+
+import { NBURateBot } from '@telegram/index';
+import { NBURateBotDailyExchangesJob } from '@cron-jobs/nbu-rate-bot-daily-exchanges.job';
+import { NBURateBotChartJob } from '@cron-jobs/nbu-rate-bot-chart.job';
+import { GlobalUtils } from '@helpers/global-utils';
 
 import { serverConfig } from './config';
 import { router } from './router';
 
-class ExpressApp {
+@injectable()
+export class ExpressApp {
   private readonly _app: express.Application;
 
-  constructor() {
+  constructor(
+    @inject(NBURateBot) private readonly _nbuRateBot: NBURateBot,
+    @inject(NBURateBotChartJob)
+    private readonly _nbuRateBotChartJob: NBURateBotChartJob,
+    @inject(NBURateBotDailyExchangesJob)
+    private readonly _nbuRateBotDailyExchangesJob: NBURateBotDailyExchangesJob,
+    @inject(GlobalUtils)
+    private readonly _globalUtils: GlobalUtils,
+  ) {
     this._app = express();
+    this.bootstrap();
   }
-  public listen(): void {
-    this._app.listen(serverConfig.port, () => {
+  private listen(): void {
+    this._app.listen(serverConfig.port, async () => {
       try {
         this._app.use(express.json());
         this._app.use(express.urlencoded({ extended: true }));
 
-        const greeting = async () => {
-          const cat = await Random.getCat()
-            .then((res) => res)
-            .catch((e) => e);
-
-          // eslint-disable-next-line
-          await console.table({
-            server: 'express',
-            status: 'ok',
-            port: serverConfig.port,
-            cat: cat.url,
-          });
-        };
-
-        greeting();
-
         router(this._app);
+
+        const catUrl = await this._globalUtils.getRandomCatUrl();
+
+        // eslint-disable-next-line
+        await console.table({
+          server: ExpressApp.name,
+          ok: true,
+          port: serverConfig.port,
+          cat: catUrl,
+        });
       } catch (error) {
         // eslint-disable-next-line
         console.table({ ok: false });
@@ -40,9 +49,10 @@ class ExpressApp {
     });
   }
 
-  get instance() {
-    return this._app;
+  private bootstrap() {
+    this.listen();
+    this._nbuRateBot.botStart();
+    this._nbuRateBotChartJob.start();
+    this._nbuRateBotDailyExchangesJob.start();
   }
 }
-
-export const expressServer = new ExpressApp();

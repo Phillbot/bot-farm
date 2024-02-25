@@ -7,12 +7,38 @@ import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 
 import { NBURateBotContext } from './nbu-rate.bot';
 
-import {
-  MainCommandType,
-  NBUPeriodRateType,
-  NBURateType,
-  SubscribeCommandType,
-} from './types';
+export type MainCommandType = 'start';
+export type RateCommandType = 'rate' | 'rate_main';
+export type SubscribeCommandType = 'subscribe' | 'unsubscribe';
+
+type NBUPeriodRateType = Readonly<{
+  exchangedate: string;
+  r030: number; // TODO: types for 840 978 ...
+  cc: (typeof currencies)[number];
+  txt: string;
+  enname: string;
+  rate: number;
+  units: number;
+  rate_per_unit: number;
+  group: string;
+  calcdate: string;
+}>;
+
+export enum COMMANDS {
+  START = 'start',
+  SUBSCRIBE = 'subscribe',
+  UNSUBSCRIBE = 'unsubscribe',
+  RATE = 'rate',
+  RATE_MAIN = 'rate_main',
+}
+
+export type NBURateType = Readonly<{
+  r030: number;
+  txt: string;
+  rate: number;
+  cc: (typeof currencies)[number];
+  exchangedate: string;
+}>;
 
 // prettier-ignore
 export const  currencies = [
@@ -22,13 +48,15 @@ export const  currencies = [
   'DOP','IRR','IQD','KGS','LBP','LYD','MYR','MAD','PKR','SAR','VND','THB',
   'AED','TND','UZS','TWD','TMT','RSD','TJS','GEL','BRL','XAU','XAG','XPT',
   'XPD',
-];
+] as const;
 
-export const mainCurrencies = ['USD', 'EUR'];
+export const mainCurrencies = ['USD', 'EUR'] as const;
 
-export const DefaultLang = 'uk';
+export const defaultLang = 'uk' as const; // TODO: move to types?
 
-export const supportLangs = [DefaultLang, 'en'] as const;
+export const supportLangs = ['uk', 'en'] as const;
+
+export const nbuRateWebLink = 'https://bank.gov.ua/ua/markets/exchangerates';
 
 @injectable()
 export class NBURateBotUtils {
@@ -46,46 +74,15 @@ export class NBURateBotUtils {
       .catch((e) => e);
   };
 
-  public getMatchedCurrenciesFromCommand(match: string): string[] {
-    return match.trim() !== ''
-      ? match.replace(/\s+/g, ' ').trim().toUpperCase().split(' ')
-      : [];
-  }
+  public getMatchedCurrenciesFromCommand(
+    match: string,
+  ): (typeof currencies)[number][] {
+    const matchCurrencies: string[] | (typeof currencies)[] =
+      match.trim() !== ''
+        ? match.replace(/\s+/g, ' ').trim().toUpperCase().split(' ')
+        : [];
 
-  public getTableData = (
-    data: NBURateType[],
-    fullList: boolean,
-    isExistAdditionalCurrency: boolean,
-    matchedCurrenciesFromCommand: string[],
-  ): { headerKeys: string[]; body: (string | number)[][] } => {
-    const schema = {
-      cc: 'nbu-exchange-bot-currency',
-      rate: 'nbu-exchange-bot-rate',
-    };
-
-    const headerKeys: string[] = Object.values(schema);
-
-    const body = data
-      .filter((rate) => {
-        if (!fullList) {
-          return mainCurrencies.includes(rate.cc);
-        }
-
-        return isExistAdditionalCurrency
-          ? matchedCurrenciesFromCommand.includes(rate.cc) &&
-              currencies.includes(rate.cc)
-          : rate;
-      })
-      .map(({ cc, rate }: NBURateType) => [cc, rate]);
-
-    return {
-      headerKeys,
-      body,
-    };
-  };
-
-  public codeMessageCreator(message: string, prefix: string = ''): string {
-    return `${prefix}\`\`\`${message}\`\`\``;
+    return matchCurrencies as (typeof currencies)[number][];
   }
 
   public getNBUExchangeRateByPeriod = (
@@ -114,53 +111,53 @@ export class NBURateBotUtils {
 
     const createUser = async () => {
       await this._nbuCurrencyBotUser
-        .createUser(
-          userId,
-          false,
-          ctx.from?.language_code || DefaultLang,
-          ctx.from?.username,
-        )
+        .createUser({
+          user_id: userId,
+          user_name: ctx.from?.username,
+          is_subscribe_active: false,
+          lang: ctx.from?.language_code || defaultLang,
+        })
         .then(() => {
-          this._telegramUtils.sendReply(
+          this._telegramUtils.sendReply({
             ctx,
-            isSubscribeAction
+            text: isSubscribeAction
               ? ctx.t('nbu-exchange-bot-subscribe-activated')
               : ctx.t('nbu-exchange-bot-subscribe-not-active'),
-          );
+          });
         });
     };
 
     const updateSubscribe = async () => {
       this._nbuCurrencyBotUser
-        .updateUser(
-          userId,
-          isSubscribeAction,
-          ctx.from?.language_code || DefaultLang,
-        )
+        .updateUser({
+          user_id: userId,
+          user_name: ctx.from?.username,
+          is_subscribe_active: isSubscribeAction,
+          lang: ctx.from?.language_code || defaultLang,
+        })
         .then(() => {
-          this._telegramUtils.sendReply(
+          this._telegramUtils.sendReply({
             ctx,
-            isSubscribeAction
+            text: isSubscribeAction
               ? ctx.t('nbu-exchange-bot-subscribe-activated')
               : ctx.t('nbu-exchange-bot-subscribe-deactivated'),
-          );
+          });
         });
     };
 
     const unableToUpdateSubscribe = async () => {
-      await this._telegramUtils.sendReply(
+      await this._telegramUtils.sendReply({
         ctx,
-        isSubscribeAction
+        text: isSubscribeAction
           ? ctx.t('nbu-exchange-bot-subscribe-already-active')
           : ctx.t('nbu-exchange-bot-subscribe-not-active'),
-      );
+      });
     };
 
     return { createUser, updateSubscribe, unableToUpdateSubscribe };
   }
 
-  // TODO: separate update lang and get user middlewares
-  public updateUserLang = async (
+  public tryUpdateUserLang = async (
     ctx: NBURateBotContext,
     next: NextFunction,
   ) => {
@@ -168,15 +165,18 @@ export class NBURateBotUtils {
       return;
     }
 
-    const user = await this._nbuCurrencyBotUser.getUserById(ctx.from.id);
+    const user = await this._nbuCurrencyBotUser.getUserById({
+      user_id: ctx.from.id,
+    });
 
     if (user?.dataValues) {
       if (user.dataValues.lang !== ctx.from.language_code) {
-        await this._nbuCurrencyBotUser.updateUser(
-          ctx.from.id,
-          user.is_subscribe_active,
-          ctx.from.language_code || DefaultLang,
-        );
+        await this._nbuCurrencyBotUser.updateUser({
+          user_id: ctx.from.id,
+          user_name: ctx.from.username,
+          is_subscribe_active: user.is_subscribe_active,
+          lang: ctx.from.language_code || defaultLang,
+        });
       }
 
       ctx.dataValues = user?.dataValues;

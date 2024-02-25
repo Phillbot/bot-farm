@@ -11,7 +11,7 @@ export class NBURateBotUnsubscribeCommand {
     private _nbuRateBotUtils: NBURateBotUtils,
   ) {}
 
-  public async withCtx(ctx: CommandContext<NBURateBotContext>) {
+  public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     if (!ctx.from?.id) {
       return;
     }
@@ -20,8 +20,7 @@ export class NBURateBotUnsubscribeCommand {
       this._nbuRateBotUtils.subscribeManager(ctx, ctx.from.id, 'unsubscribe');
 
     if (ctx?.dataValues) {
-      const isUserSubscriber: boolean =
-        await ctx?.dataValues.is_subscribe_active;
+      const isUserSubscriber = await ctx?.dataValues.is_subscribe_active;
 
       if (isUserSubscriber) {
         await updateSubscribe();
@@ -33,6 +32,5 @@ export class NBURateBotUnsubscribeCommand {
     }
 
     await createUser();
-    return;
   }
 }

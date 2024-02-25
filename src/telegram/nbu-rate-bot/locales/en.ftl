@@ -16,3 +16,8 @@ nbu-exchange-bot-subscribe-command-descriptor  = Will send exchange to user auto
 nbu-exchange-bot-unsubscribe-command-descriptor = Remove subscribe
 nbu-exchange-bot-rate-command-descriptor = Show NBU exchanges. All or by currencies
 nbu-exchange-bot-rate-main-command-descriptor = Show NBU USD and EUR exchanges
+
+nbu-exchange-bot-exchange-rates-url-text = Check on site
+
+nbu-exchange-bot-exchange-rates-table-cc = Currency
+nbu-exchange-bot-exchange-rates-table-rate = Rate

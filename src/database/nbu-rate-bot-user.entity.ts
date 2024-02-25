@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 
 import {
   NBURateBotPostgresqlSequelize,
-  SubscriberUserIdType,
+  NBURateBotUserType,
 } from '@database/nbu-rate-bot.db';
 
 @injectable()
@@ -11,12 +11,10 @@ export class NBUCurrencyBotUser {
     @inject(NBURateBotPostgresqlSequelize)
     private readonly _nbuRateBotPostgresqlSequelize: NBURateBotPostgresqlSequelize,
   ) {}
-  public async getUserById(userId?: number) {
+  public async getUserById({ user_id }: Pick<NBURateBotUserType, 'user_id'>) {
     return (
       this._nbuRateBotPostgresqlSequelize.user
-        .findOne({
-          where: { user_id: userId },
-        })
+        .findOne({ where: { user_id } })
         // eslint-disable-next-line
         .catch((e) => console.log(e))
     );
@@ -36,7 +34,7 @@ export class NBUCurrencyBotUser {
     );
   }
 
-  public async getSubscribersUserIds(): Promise<void | SubscriberUserIdType[]> {
+  public async getSubscribersUserIds() {
     return (
       this._nbuRateBotPostgresqlSequelize.user
         .findAll({
@@ -51,33 +49,21 @@ export class NBUCurrencyBotUser {
     );
   }
 
-  public async createUser(
-    userId: number,
-    isSubscribeActive: boolean,
-    lang: string,
-    username?: string,
-  ) {
+  public async createUser(userData: NBURateBotUserType) {
     this._nbuRateBotPostgresqlSequelize.user
-      .create({
-        user_id: Number(userId),
-        user_name: username,
-        is_subscribe_active: isSubscribeActive,
-        lang,
-      })
+      .create({ ...userData })
       // eslint-disable-next-line
       .catch((e) => console.log(e));
   }
 
-  public async updateUser(
-    userId: number,
-    isSubscribeActive: boolean,
-    lang: string,
-  ) {
+  public async updateUser({
+    user_id,
+    is_subscribe_active,
+    lang,
+    user_name,
+  }: NBURateBotUserType) {
     this._nbuRateBotPostgresqlSequelize.user
-      .update(
-        { is_subscribe_active: isSubscribeActive, lang },
-        { where: { user_id: userId } },
-      )
+      .update({ is_subscribe_active, lang, user_name }, { where: { user_id } })
       // eslint-disable-next-line
       .catch((e) => console.log(e));
   }

@@ -11,7 +11,7 @@ export class NBURateBotSubscribeCommand {
     private _nbuRateBotUtils: NBURateBotUtils,
   ) {}
 
-  public async withCtx(ctx: CommandContext<NBURateBotContext>) {
+  public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     if (!ctx.from?.id) {
       return;
     }
@@ -24,7 +24,7 @@ export class NBURateBotSubscribeCommand {
       return;
     }
 
-    const isUserSubscriber: boolean = await ctx?.dataValues.is_subscribe_active;
+    const isUserSubscriber = await ctx?.dataValues.is_subscribe_active;
 
     if (isUserSubscriber) {
       await unableToUpdateSubscribe();

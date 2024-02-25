@@ -5,7 +5,7 @@ import { TelegramUtils } from '@telegram/telegram-utils';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 
 import { NBURateBotContext } from '../nbu-rate.bot';
-import { DefaultLang } from '../nbu-rate.utils';
+import { defaultLang } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotStartCommand {
@@ -14,24 +14,25 @@ export class NBURateBotStartCommand {
     @inject(TelegramUtils) private _telegramUtils: TelegramUtils,
   ) {}
 
-  public async withCtx(ctx: CommandContext<NBURateBotContext>) {
+  public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     if (!ctx.from?.id) {
       return;
     }
+
     const isUserExist = ctx?.dataValues;
 
     if (!isUserExist) {
-      await this._nbuCurrencyBotUser.createUser(
-        ctx.from.id,
-        false,
-        ctx.from.language_code || DefaultLang,
-        ctx.from?.username,
-      );
+      await this._nbuCurrencyBotUser.createUser({
+        user_id: ctx.from.id,
+        user_name: ctx.from?.username,
+        is_subscribe_active: false,
+        lang: ctx.from.language_code || defaultLang,
+      });
     }
 
-    await this._telegramUtils.sendReply(
+    await this._telegramUtils.sendReply({
       ctx,
-      ctx.t('nbu-exchange-bot-start', { firstName: ctx.from.first_name }),
-    );
+      text: ctx.t('nbu-exchange-bot-start', { firstName: ctx.from.first_name }),
+    });
   }
 }

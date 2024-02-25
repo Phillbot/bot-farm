@@ -1,15 +1,8 @@
 import 'dotenv/config';
+import 'reflect-metadata';
 
 import container from '@config/inversify.config';
 
-import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from './cron-jobs';
-import { expressServer } from './server';
-import { NBURateBot } from './telegram';
+import { ExpressApp } from './server';
 
-(() => {
-  expressServer.listen();
-
-  container.get<NBURateBot>(NBURateBot);
-  container.get<NBURateBotChartJob>(NBURateBotChartJob);
-  container.get<NBURateBotDailyExchangesJob>(NBURateBotDailyExchangesJob);
-})();
+container.get<ExpressApp>(ExpressApp);

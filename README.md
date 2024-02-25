@@ -7,15 +7,14 @@ TODO:
 - database for registration data ✅
 - chart ✅
 
-- sending to users functions with delay and clear delay
 - remove consoles, add logger
 - limit requests\*\*
 - connect JIRA (?)
-- custom reglament time (?)
 - queue + redis (?)
 - webpack for build all file types
 
 \*Use grammy i18n
+
 \*\*At this moment its control by telegram because almost request send to telegram API
 
 **ENV vars**

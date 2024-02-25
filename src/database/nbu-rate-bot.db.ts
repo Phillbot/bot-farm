@@ -13,14 +13,16 @@ enum NBU_RATE_BOT_CONNECTION_DATA {
   SCHEMA_SUBSCRIBERS = 'nbu_exchange',
 }
 
-export type SubscriberUserIdType = Pick<NBURateBotUser, 'user_id' | 'lang'>;
+export type NBURateBotUserType = Readonly<
+  Pick<NBURateBotUser, 'user_id' | 'user_name' | 'is_subscribe_active' | 'lang'>
+>;
 
 export class NBURateBotUser extends Model<
   InferAttributes<NBURateBotUser>,
   InferCreationAttributes<NBURateBotUser>
 > {
   declare user_id: number;
-  declare user_name: CreationOptional<string>;
+  declare user_name?: CreationOptional<string>;
   declare is_subscribe_active: boolean;
   declare lang: string;
 }
@@ -67,11 +69,15 @@ export class NBURateBotPostgresqlSequelize {
   );
 
   constructor() {
+    // test connection
     this._connect
       .authenticate()
       .then(() =>
         // eslint-disable-next-line
-        console.table({ database: 'postgresqlSequelize', status: 'ok' }),
+        console.table({
+          database: NBURateBotPostgresqlSequelize.name,
+          ok: true,
+        }),
       )
       // eslint-disable-next-line
       .catch((error) => console.error(error));

@@ -12,38 +12,28 @@ import { NBURateBotContext } from '../nbu-rate.bot';
 import {
   NBURateBotUtils,
   NBURateType,
-  currencies,
+  mainCurrencies,
   nbuRateWebLink,
 } from '../nbu-rate.utils';
 
 @injectable()
-export class NBURateBotRateCommand {
+export class NBURateBotRateMainCommand {
   constructor(
     @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
     @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
+
     @inject(PrettyTableCreator)
     private readonly _prettyTableCreator: PrettyTableCreator,
   ) {}
 
   private async contentBuilder(
-    match: string,
     headerKeys: PrettyTableHeaderKeysType<NBURateType>,
   ): Promise<PrettyTable> {
     const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
 
-    const matchedCurrenciesFromCommand =
-      this._nbuRateBotUtils.getMatchedCurrenciesFromCommand(match);
-
-    const filteredCurrenciesFromCommand = matchedCurrenciesFromCommand.filter(
-      (curr) => currencies.includes(curr),
+    const filteredData: NBURateType[] = data.filter(({ cc }) =>
+      mainCurrencies.includes(cc as (typeof mainCurrencies)[number]),
     );
-
-    const isExistAdditionalCurrency: boolean =
-      filteredCurrenciesFromCommand.length > 0;
-
-    const filteredData: NBURateType[] = isExistAdditionalCurrency
-      ? data.filter(({ cc }) => filteredCurrenciesFromCommand.includes(cc))
-      : data;
 
     return this._prettyTableCreator.builder<NBURateType>({
       data: filteredData,
@@ -53,8 +43,7 @@ export class NBURateBotRateCommand {
   }
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
-    const table: PrettyTable = await this.contentBuilder(
-      ctx.match,
+    const table = await this.contentBuilder(
       new Map([
         ['cc', ctx.t('nbu-exchange-bot-exchange-rates-table-cc')],
         ['rate', ctx.t('nbu-exchange-bot-exchange-rates-table-rate')],
@@ -74,5 +63,9 @@ export class NBURateBotRateCommand {
         },
       ]),
     });
+  }
+
+  public async withoutCtx(headerKeys: PrettyTableHeaderKeysType<NBURateType>) {
+    return this.contentBuilder(headerKeys);
   }
 }

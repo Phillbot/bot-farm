@@ -19,7 +19,7 @@
     "paths": {
       "@telegram/*": ["telegram/*"],
       "@server/*": ["server/*"],
-      "@utils/*": ["utils/*"],
+      "@helpers/*": ["helpers/*"],
       "@common/*": ["common/*"],
       "@database/*": ["database/*"],
       "@config/*": ["config/*"],

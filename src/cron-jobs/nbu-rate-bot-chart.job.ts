@@ -3,7 +3,7 @@ import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
 
-import { DefaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { NBURateBot } from '@telegram/index';
@@ -12,7 +12,7 @@ import { nbuRateBotTimezone } from './utils';
 
 @injectable()
 export class NBURateBotChartJob {
-  private readonly _startDate = moment().startOf('month').format('YYYYMMDD'); // move to ENV?
+  private readonly _startDate = moment().startOf('month').format('YYYYMMDD'); // TODO: move to ENV?
   private readonly _endDate = moment().format('YYYYMMDD');
 
   constructor(
@@ -25,7 +25,6 @@ export class NBURateBotChartJob {
     private readonly _nbuRateBotChartBuilder: NBURateBotChartBuilder,
   ) {
     this._nbuRateBotChartBuilder.setDates(this._startDate, this._endDate);
-    this.chartSenderJob().start();
   }
 
   private chartSenderJob() {
@@ -53,12 +52,7 @@ export class NBURateBotChartJob {
                       new InputFile(chart),
                       {
                         parse_mode: 'HTML',
-                        caption: createCaption(
-                          this._nbuRateBot,
-                          this._nbuRateBotChartBuilder.dates.startDate,
-                          this._nbuRateBotChartBuilder.dates.endDate,
-                          subscribersUserIds[i].lang,
-                        ),
+                        caption: this.createCaption(subscribersUserIds[i].lang),
                       },
                     )
                     // eslint-disable-next-line
@@ -76,22 +70,21 @@ export class NBURateBotChartJob {
         }
       },
       timeZone: nbuRateBotTimezone,
-    });
+    }).start();
   }
-}
 
-function createCaption(
-  nbuRateBot: NBURateBot,
-  startDate: string,
-  endDate: string,
-  lang: string,
-) {
-  return `<b>Weekly Chart</b>\n\n<code>${nbuRateBot.i18n.t(
-    lang || DefaultLang,
-    'nbu-exchange-bot-chart-period',
-    {
-      startDate: moment(startDate).format('YYYY.MM.DD'),
-      endDate: moment(endDate).format('YYYY.MM.DD'),
-    },
-  )}</code>`;
+  private createCaption(lang: string) {
+    return `<b>Weekly Chart</b>\n\n<code>${this._nbuRateBot.i18n.t(
+      lang || defaultLang,
+      'nbu-exchange-bot-chart-period',
+      {
+        startDate: moment(this._startDate).format('YYYY.MM.DD'),
+        endDate: moment(this._endDate).format('YYYY.MM.DD'),
+      },
+    )}</code>`;
+  }
+
+  public start() {
+    this.chartSenderJob();
+  }
 }

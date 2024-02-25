@@ -16,3 +16,8 @@ nbu-exchange-bot-subscribe-command-descriptor  = Автоматично надс
 nbu-exchange-bot-unsubscribe-command-descriptor = Видалити підписку
 nbu-exchange-bot-rate-command-descriptor = Показати курс НБУ. Всі валюти або по валютах (через пробіл після команди)
 nbu-exchange-bot-rate-main-command-descriptor = Показати курс НБУ USD та EUR
+
+nbu-exchange-bot-exchange-rates-url-text = Перевірити на сайті
+
+nbu-exchange-bot-exchange-rates-table-cc = Валюта
+nbu-exchange-bot-exchange-rates-table-rate = Курс

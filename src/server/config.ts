@@ -1,6 +1,6 @@
-type ServerConfigType = {
+type ServerConfigType = Readonly<{
   port: number;
-};
+}>;
 
 const defaultPort = 8080;
 

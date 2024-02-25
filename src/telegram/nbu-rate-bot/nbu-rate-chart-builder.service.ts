@@ -6,8 +6,6 @@ import { ChartConfiguration } from 'chart.js';
 
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
-// TODO: make chartBuilder more abstract
-
 @injectable()
 export class NBURateBotChartBuilder {
   constructor(
@@ -78,18 +76,6 @@ export class NBURateBotChartBuilder {
     return chart;
   }
 
-  public get dates() {
-    return {
-      startDate: this._startDate,
-      endDate: this._endDate,
-    };
-  }
-
-  public setDates = (startDate: string, endDate: string) => {
-    this._startDate = startDate;
-    this._endDate = endDate;
-  };
-
   private getResolution(labels: string[]): { width: number; height: number } {
     const FullHD = {
       width: 1920,
@@ -114,4 +100,9 @@ export class NBURateBotChartBuilder {
       return HD;
     } else return XGA;
   }
+
+  public setDates = (startDate: string, endDate: string) => {
+    this._startDate = startDate;
+    this._endDate = endDate;
+  };
 }
