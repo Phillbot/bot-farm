@@ -52,6 +52,44 @@ export class NBURateBot {
     directory: path.join(__dirname, './locales'),
   });
 
+  private readonly _commandsConfig = new Map([
+    [
+      COMMANDS.START,
+      {
+        instance: this._nbuRateBotStartCommand,
+        translateKey: 'nbu-exchange-bot-start-command-descriptor',
+      },
+    ],
+    [
+      COMMANDS.RATE,
+      {
+        instance: this._nbuRateBotRateCommand,
+        translateKey: 'nbu-exchange-bot-rate-command-descriptor',
+      },
+    ],
+    [
+      COMMANDS.RATE_MAIN,
+      {
+        instance: this._nbuRateBotRateMainCommand,
+        translateKey: 'nbu-exchange-bot-rate-main-command-descriptor',
+      },
+    ],
+    [
+      COMMANDS.SUBSCRIBE,
+      {
+        instance: this._nbuRateBotSubscribeCommand,
+        translateKey: 'nbu-exchange-bot-subscribe-command-descriptor',
+      },
+    ],
+    [
+      COMMANDS.UNSUBSCRIBE,
+      {
+        instance: this._nbuRateBotUnsubscribeCommand,
+        translateKey: 'nbu-exchange-bot-unsubscribe-command-descriptor',
+      },
+    ],
+  ]);
+
   constructor(
     @inject(NBURateBotStartCommand)
     private readonly _nbuRateBotStartCommand: NBURateBotStartCommand,
@@ -68,67 +106,21 @@ export class NBURateBot {
   ) {}
 
   private commands() {
-    this._bot.command(COMMANDS.START, (ctx) =>
-      this._nbuRateBotStartCommand.withCtx(ctx),
-    );
-
-    this._bot.command(COMMANDS.RATE, (ctx) =>
-      this._nbuRateBotRateCommand.withCtx(ctx),
-    );
-
-    this._bot.command(COMMANDS.RATE_MAIN, (ctx) =>
-      this._nbuRateBotRateMainCommand.withCtx(ctx),
-    );
-
-    this._bot.command(COMMANDS.SUBSCRIBE, (ctx) =>
-      this._nbuRateBotSubscribeCommand.withCtx(ctx),
-    );
-
-    this._bot.command(COMMANDS.UNSUBSCRIBE, (ctx) =>
-      this._nbuRateBotUnsubscribeCommand.withCtx(ctx),
-    );
+    for (const [command, { instance }] of this._commandsConfig.entries()) {
+      this._bot.command(command, (ctx) => instance.withCtx(ctx));
+    }
   }
 
   private async init() {
+    //TODO: check user for set additional commands
     await supportLangs.forEach((lang) => {
       this._bot.api.setMyCommands(
-        [
-          {
-            command: COMMANDS.START,
-            description: this._i18n.t(
-              lang,
-              'nbu-exchange-bot-start-command-descriptor',
-            ),
-          },
-          {
-            command: COMMANDS.RATE,
-            description: this._i18n.t(
-              lang,
-              'nbu-exchange-bot-rate-command-descriptor',
-            ),
-          },
-          {
-            command: COMMANDS.RATE_MAIN,
-            description: this._i18n.t(
-              lang,
-              'nbu-exchange-bot-rate-main-command-descriptor',
-            ),
-          },
-          {
-            command: COMMANDS.SUBSCRIBE,
-            description: this._i18n.t(
-              lang,
-              'nbu-exchange-bot-subscribe-command-descriptor',
-            ),
-          },
-          {
-            command: COMMANDS.UNSUBSCRIBE,
-            description: this._i18n.t(
-              lang,
-              'nbu-exchange-bot-unsubscribe-command-descriptor',
-            ),
-          },
-        ],
+        [...this._commandsConfig.entries()].map(
+          ([command, { translateKey }]) => ({
+            command,
+            description: this._i18n.t(lang, translateKey),
+          }),
+        ),
         { language_code: lang === defaultLang ? undefined : lang },
       );
     });
