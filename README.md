@@ -23,9 +23,11 @@ TODO:
 | ------------------------------------------ | ------------------------- |
 | ENV                                        | development \| production |
 | PORT                                       | number                    |
+| CONTACT_URL                                | string                    |
 | NBU_RATE_BOT_TOKEN                         | string                    |
 | NBU_RATE_CRON_SCHEMA                       | \* \* \* \* \*            |
 | NBU_RATE_EXCHANGE_API_URL                  | string                    |
+| NBU_RATE_WEB_LINK                          | string                    |
 | NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL | string                    |
 | NBU_RATE_EXCHANGE_CURRENCIES               | string (split by ,)       |
 | NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA        | \* \* \* \* \*            |

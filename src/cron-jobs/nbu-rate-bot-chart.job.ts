@@ -5,6 +5,7 @@ import { InputFile } from 'grammy';
 
 import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { NBURateBot } from '@telegram/index';
 
@@ -12,17 +13,14 @@ import { nbuRateBotTimezone } from './utils';
 
 @injectable()
 export class NBURateBotChartJob {
-  private readonly _startDate = moment().startOf('month').format('YYYYMMDD'); // TODO: move to ENV?
+  private readonly _startDate = moment().subtract(1, 'month').format('YYYYMMDD');
   private readonly _endDate = moment().format('YYYYMMDD');
 
   constructor(
-    @inject(NBUCurrencyBotUser)
-    private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
-    @inject(NBURateBot)
-    private readonly _nbuRateBot: NBURateBot,
-
-    @inject(NBURateBotChartBuilder)
-    private readonly _nbuRateBotChartBuilder: NBURateBotChartBuilder,
+    @inject(NBUCurrencyBotUser) private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(NBURateBot) private readonly _nbuRateBot: NBURateBot,
+    @inject(NBURateBotChartBuilder) private readonly _nbuRateBotChartBuilder: NBURateBotChartBuilder,
+    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
   ) {
     this._nbuRateBotChartBuilder.setDates(this._startDate, this._endDate);
   }
@@ -31,8 +29,7 @@ export class NBURateBotChartJob {
     return CronJob.from({
       cronTime: process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA as string,
       onTick: async () => {
-        const subscribersUserIds =
-          await this._nbuCurrencyBotUser.getSubscribersUserIds();
+        const subscribersUserIds = await this._nbuCurrencyBotUser.getSubscribersUserIds();
 
         if (subscribersUserIds?.length) {
           const chart = await this._nbuRateBotChartBuilder.build();
@@ -47,14 +44,10 @@ export class NBURateBotChartJob {
 
                 const result = await new Promise((r) => {
                   this._nbuRateBot.bot.api
-                    .sendPhoto(
-                      subscribersUserIds[i].user_id,
-                      new InputFile(chart),
-                      {
-                        parse_mode: 'HTML',
-                        caption: this.createCaption(subscribersUserIds[i].lang),
-                      },
-                    )
+                    .sendPhoto(subscribersUserIds[i].user_id, new InputFile(chart), {
+                      parse_mode: 'MarkdownV2',
+                      caption: this.createCaption(subscribersUserIds[i].lang || defaultLang),
+                    })
                     // eslint-disable-next-line
                     .catch((e) => console.error('chartSenderJob', e));
 
@@ -74,14 +67,13 @@ export class NBURateBotChartJob {
   }
 
   private createCaption(lang: string) {
-    return `<b>Weekly Chart</b>\n\n<code>${this._nbuRateBot.i18n.t(
-      lang || defaultLang,
-      'nbu-exchange-bot-chart-period',
-      {
+    return this._telegramUtils.simpleCodeMessageCreator(
+      this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-chart-period', {
         startDate: moment(this._startDate).format('YYYY.MM.DD'),
         endDate: moment(this._endDate).format('YYYY.MM.DD'),
-      },
-    )}</code>`;
+      }),
+      `*${this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-weekly-chart')}*\n\n`,
+    );
   }
 
   public start() {

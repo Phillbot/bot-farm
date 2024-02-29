@@ -1,9 +1,6 @@
 import { inject, injectable } from 'inversify';
 
-import {
-  NBURateBotPostgresqlSequelize,
-  NBURateBotUserType,
-} from '@database/nbu-rate-bot.db';
+import { NBURateBotPostgresqlSequelize, NBURateBotUserType } from '@database/nbu-rate-bot.db';
 
 @injectable()
 export class NBUCurrencyBotUser {
@@ -25,9 +22,7 @@ export class NBUCurrencyBotUser {
       this._nbuRateBotPostgresqlSequelize.user
         .findAll({
           raw: true,
-          where: {
-            is_subscribe_active: true,
-          },
+          where: { is_subscribe_active: true },
         })
         // eslint-disable-next-line
         .catch((e) => console.log(e))
@@ -39,9 +34,7 @@ export class NBUCurrencyBotUser {
       this._nbuRateBotPostgresqlSequelize.user
         .findAll({
           raw: true,
-          where: {
-            is_subscribe_active: true,
-          },
+          where: { is_subscribe_active: true },
           attributes: ['user_id', 'lang'],
         })
         // eslint-disable-next-line
@@ -56,12 +49,7 @@ export class NBUCurrencyBotUser {
       .catch((e) => console.log(e));
   }
 
-  public async updateUser({
-    user_id,
-    is_subscribe_active,
-    lang,
-    user_name,
-  }: NBURateBotUserType) {
+  public async updateUser({ user_id, is_subscribe_active, lang, user_name }: NBURateBotUserType) {
     this._nbuRateBotPostgresqlSequelize.user
       .update({ is_subscribe_active, lang, user_name }, { where: { user_id } })
       // eslint-disable-next-line

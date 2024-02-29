@@ -1,3 +1,2 @@
-export * from './express-server.module';
+export * from './express-server';
 export * from './router';
-export * from './config';

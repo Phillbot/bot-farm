@@ -1,12 +1,5 @@
 import { injectable } from 'inversify';
-import {
-  CreationOptional,
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-  Model,
-  Sequelize,
-} from 'sequelize';
+import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
 enum NBU_RATE_BOT_CONNECTION_DATA {
   TABLE_SUBSCRIBERS = 'bot_subscribers',
@@ -17,10 +10,7 @@ export type NBURateBotUserType = Readonly<
   Pick<NBURateBotUser, 'user_id' | 'user_name' | 'is_subscribe_active' | 'lang'>
 >;
 
-export class NBURateBotUser extends Model<
-  InferAttributes<NBURateBotUser>,
-  InferCreationAttributes<NBURateBotUser>
-> {
+export class NBURateBotUser extends Model<InferAttributes<NBURateBotUser>, InferCreationAttributes<NBURateBotUser>> {
   declare user_id: number;
   declare user_name?: CreationOptional<string>;
   declare is_subscribe_active: boolean;
@@ -29,15 +19,12 @@ export class NBURateBotUser extends Model<
 
 @injectable()
 export class NBURateBotPostgresqlSequelize {
-  private readonly _connect = new Sequelize(
-    process.env.POSTGRESQL_DATABASE_CONNECT_URL as string,
-    {
-      logging: process.env.ENV === 'development',
-      define: {
-        hooks: {},
-      },
+  private readonly _connect = new Sequelize(process.env.POSTGRESQL_DATABASE_CONNECT_URL as string, {
+    logging: process.env.ENV === 'development',
+    define: {
+      hooks: {},
     },
-  );
+  });
 
   private readonly _user = NBURateBotUser.init(
     {

@@ -7,7 +7,7 @@ export const router = (app: express.Application): void => {
     const cat = await Random.getCat();
 
     res.json({
-      w: 'https://t.me/phillb0t',
+      w: process.env.CONTACT_URL,
       cat,
     });
   });

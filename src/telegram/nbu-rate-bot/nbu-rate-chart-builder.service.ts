@@ -6,6 +6,7 @@ import { ChartConfiguration } from 'chart.js';
 
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
+//TODO: abstract class or implement interface for re-use
 @injectable()
 export class NBURateBotChartBuilder {
   constructor(
@@ -15,30 +16,20 @@ export class NBURateBotChartBuilder {
   ) {}
 
   public async build(): Promise<Buffer> {
-    const { data } = await this._nbuRateBotUtils.getNBUExchangeRateByPeriod(
-      this._startDate,
-      this._endDate,
-    );
+    const { data } = await this._nbuRateBotUtils.getNBUExchangeRateByPeriod(this._startDate, this._endDate);
 
-    const currencies =
-      process.env.NBU_RATE_EXCHANGE_CURRENCIES?.split(',') || [];
+    const currencies = process.env.NBU_RATE_EXCHANGE_CURRENCIES?.split(',') || [];
     const filteredData = data.filter(({ cc }) => currencies.includes(cc));
 
-    const labels = [
-      ...new Set(filteredData.map(({ exchangedate }) => exchangedate)),
-    ];
+    const labels = [...new Set(filteredData.map(({ exchangedate }) => exchangedate))];
 
     const resolution = this.getResolution(labels);
 
-    const canvasRenderService = new ChartJSNodeCanvas({
-      ...resolution,
-    });
+    const canvasRenderService = new ChartJSNodeCanvas({ ...resolution });
 
     const datasets = currencies.map((currency) => ({
       label: currency,
-      data: filteredData
-        .filter(({ cc }) => cc === currency)
-        .map(({ rate }) => rate),
+      data: filteredData.filter(({ cc }) => cc === currency).map(({ rate }) => rate),
       fill: false,
       borderColor: uniqolor(currency, {
         format: 'rgb',

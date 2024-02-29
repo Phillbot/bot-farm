@@ -1,7 +1,7 @@
 import { CommandContext } from 'grammy';
 import { inject, injectable } from 'inversify';
 
-import { TelegramUtils } from '@telegram/telegram-utils';
+import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 
 import { NBURateBotContext } from '../nbu-rate.bot';
@@ -19,9 +19,7 @@ export class NBURateBotStartCommand {
       return;
     }
 
-    const isUserExist = ctx?.dataValues;
-
-    if (!isUserExist) {
+    if (!ctx?.dataValues) {
       await this._nbuCurrencyBotUser.createUser({
         user_id: ctx.from.id,
         user_name: ctx.from?.username,
