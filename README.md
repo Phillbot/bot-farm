@@ -1,17 +1,11 @@
 TODO:
 
-- reg command for get curr by reglament ✅
-- i18n\* ✅
-- inversify ✅
-- OOP ✅
-- database for registration data ✅
-- chart ✅
-
 - remove consoles, add logger
 - limit requests\*\*
 - connect JIRA (?)
 - queue + redis (?)
 - webpack for build all file types
+- move under express control (more flexible actions with server (webhooks etc))
 
 \*Use grammy i18n
 
