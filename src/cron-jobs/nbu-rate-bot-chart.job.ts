@@ -15,6 +15,7 @@ import { nbuRateBotTimezone } from './utils';
 export class NBURateBotChartJob {
   private readonly _startDate = moment().subtract(1, 'month').format('YYYYMMDD');
   private readonly _endDate = moment().format('YYYYMMDD');
+  private readonly _displayFormat = 'DD.MM.YYYY';
 
   constructor(
     @inject(NBUCurrencyBotUser) private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
@@ -25,7 +26,7 @@ export class NBURateBotChartJob {
     this._nbuRateBotChartBuilder.setDates(this._startDate, this._endDate);
   }
 
-  private chartSenderJob() {
+  private chartSenderJob(): void {
     return CronJob.from({
       cronTime: process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA as string,
       onTick: async () => {
@@ -66,17 +67,17 @@ export class NBURateBotChartJob {
     }).start();
   }
 
-  private createCaption(lang: string) {
+  private createCaption(lang: string): string {
     return this._telegramUtils.simpleCodeMessageCreator(
       this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-chart-period', {
-        startDate: moment(this._startDate).format('YYYY.MM.DD'),
-        endDate: moment(this._endDate).format('YYYY.MM.DD'),
+        startDate: moment(this._startDate).format(this._displayFormat),
+        endDate: moment(this._endDate).format(this._displayFormat),
       }),
       `*${this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-weekly-chart')}*\n\n`,
     );
   }
 
-  public start() {
+  public start(): void {
     this.chartSenderJob();
   }
 }
