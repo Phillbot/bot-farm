@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { inject, injectable, unmanaged } from 'inversify';
 import uniqolor from 'uniqolor';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
@@ -6,19 +6,18 @@ import { ChartConfiguration } from 'chart.js';
 
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
-//TODO: abstract class or implement interface for re-use
 @injectable()
 export class NBURateBotChartBuilder {
   constructor(
     @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
-    private _startDate: string = '',
-    private _endDate: string = '',
+    @unmanaged() private _startDate: string,
+    @unmanaged() private _endDate: string,
   ) {}
 
   public async build(): Promise<Buffer> {
     const { data } = await this._nbuRateBotUtils.getNBUExchangeRateByPeriod(this._startDate, this._endDate);
 
-    const currencies = process.env.NBU_RATE_EXCHANGE_CURRENCIES?.split(',') || [];
+    const currencies = process.env.NBU_RATE_EXCHANGE_CURRENCIES?.split(',') ?? [];
     const filteredData = data.filter(({ cc }) => currencies.includes(cc));
 
     const labels = [...new Set(filteredData.map(({ exchangedate }) => exchangedate))];
@@ -92,7 +91,7 @@ export class NBURateBotChartBuilder {
     } else return XGA;
   }
 
-  public setDates = (startDate: string, endDate: string) => {
+  readonly setDates = (startDate: string, endDate: string) => {
     this._startDate = startDate;
     this._endDate = endDate;
   };

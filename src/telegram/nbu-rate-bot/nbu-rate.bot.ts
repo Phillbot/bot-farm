@@ -29,7 +29,7 @@ export type NBURateBotContext = EmojiFlavor<
 
 @injectable()
 export class NBURateBot {
-  private readonly _bot = new Bot<NBURateBotContext>(process.env.NBU_RATE_BOT_TOKEN as string);
+  private readonly _bot = new Bot<NBURateBotContext>(process.env.NBU_RATE_BOT_TOKEN!);
   private readonly _composer = new Composer<NBURateBotContext>();
   private readonly _i18n = new I18n<NBURateBotContext>({
     defaultLocale: defaultLang,

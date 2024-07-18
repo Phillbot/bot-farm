@@ -22,7 +22,7 @@ export class NBURateBotDailyExchangesJob {
 
   private exchangeTableSender() {
     return CronJob.from({
-      cronTime: process.env.NBU_RATE_CRON_SCHEMA as string,
+      cronTime: process.env.NBU_RATE_CRON_SCHEMA!,
       onTick: async () => {
         const subscribersUserIds = await this._nbuCurrencyBotUser.getSubscribersUserIds();
 
@@ -31,7 +31,7 @@ export class NBURateBotDailyExchangesJob {
 
           for (let i = 0; i < subscribersUserIds.length; i++) {
             const delay = 250 * i;
-            const lang = subscribersUserIds[i].lang || defaultLang;
+            const lang = subscribersUserIds[i].lang ?? defaultLang;
             const table = await this.buildTable(lang);
 
             tasks.push(
@@ -54,7 +54,7 @@ export class NBURateBotDailyExchangesJob {
                           {
                             type: 'url',
                             text: this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-exchange-rates-url-text'),
-                            url: process.env.NBU_RATE_WEB_LINK as string,
+                            url: process.env.NBU_RATE_WEB_LINK!,
                           },
                         ]),
                       },

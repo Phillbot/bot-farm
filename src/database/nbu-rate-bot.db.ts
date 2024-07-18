@@ -19,7 +19,7 @@ export class NBURateBotUser extends Model<InferAttributes<NBURateBotUser>, Infer
 
 @injectable()
 export class NBURateBotPostgresqlSequelize {
-  private readonly _connect = new Sequelize(process.env.POSTGRESQL_DATABASE_CONNECT_URL as string, {
+  private readonly _connect = new Sequelize(process.env.POSTGRESQL_DATABASE_CONNECT_URL!, {
     logging: process.env.ENV === 'development',
     define: {
       hooks: {},

@@ -47,7 +47,7 @@ export class NBURateBotRateAllCommand {
         {
           type: 'url',
           text: ctx.t('nbu-exchange-bot-exchange-rates-url-text'),
-          url: process.env.NBU_RATE_WEB_LINK as string,
+          url: process.env.NBU_RATE_WEB_LINK!,
         },
       ]),
     });

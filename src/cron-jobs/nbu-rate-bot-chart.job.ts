@@ -13,6 +13,7 @@ import { nbuRateBotTimezone } from './utils';
 
 @injectable()
 export class NBURateBotChartJob {
+  //TODO: Move config to ENV for abstract?
   private readonly _startDate = moment().subtract(1, 'month').format('YYYYMMDD');
   private readonly _endDate = moment().format('YYYYMMDD');
   private readonly _displayFormat = 'DD.MM.YYYY';
@@ -28,7 +29,7 @@ export class NBURateBotChartJob {
 
   private chartSenderJob(): void {
     return CronJob.from({
-      cronTime: process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA as string,
+      cronTime: process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA!,
       onTick: async () => {
         const subscribersUserIds = await this._nbuCurrencyBotUser.getSubscribersUserIds();
 
@@ -47,11 +48,10 @@ export class NBURateBotChartJob {
                   this._nbuRateBot.bot.api
                     .sendPhoto(subscribersUserIds[i].user_id, new InputFile(chart), {
                       parse_mode: 'MarkdownV2',
-                      caption: this.createCaption(subscribersUserIds[i].lang || defaultLang),
+                      caption: this.createCaption(subscribersUserIds[i].lang ?? defaultLang),
                     })
                     // eslint-disable-next-line
                     .catch((e) => console.error('chartSenderJob', e));
-
                   r(delay);
                 });
 

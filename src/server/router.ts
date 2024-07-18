@@ -8,10 +8,14 @@ export const router = (app: express.Application): void => {
   app.get('/*', async (_: Request, res: Response) => {
     const cat = await Random.getCat();
 
-    res.json({
-      version,
-      w: process.env.CONTACT_URL,
-      cat,
-    });
+    res.send(
+      `
+      <div>
+        <a href=${process.env.CONTACT_URL} target='_blank'>Telegram</a>
+        <p>Program version: ${version}</p>
+        <img src=${cat?.url} alt='cat' />
+      </div>
+      `,
+    );
   });
 };

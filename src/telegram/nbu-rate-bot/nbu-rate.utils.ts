@@ -117,7 +117,7 @@ export class NBURateBotUtils {
     userId: number,
     type: COMMANDS.START | COMMANDS.SUBSCRIBE | COMMANDS.UNSUBSCRIBE,
   ) {
-    const isSubscribeAction = type === 'subscribe';
+    const isSubscribeAction = type === COMMANDS.SUBSCRIBE;
 
     const createUser = async () => {
       await this._nbuCurrencyBotUser
@@ -125,7 +125,7 @@ export class NBURateBotUtils {
           user_id: userId,
           user_name: ctx.from?.username,
           is_subscribe_active: false,
-          lang: ctx.from?.language_code || defaultLang,
+          lang: ctx.from?.language_code ?? defaultLang,
         })
         .then(() => {
           this._telegramUtils.sendReply({
@@ -143,7 +143,7 @@ export class NBURateBotUtils {
           user_id: userId,
           user_name: ctx.from?.username,
           is_subscribe_active: isSubscribeAction,
-          lang: ctx.from?.language_code || defaultLang,
+          lang: ctx.from?.language_code ?? defaultLang,
         })
         .then(() => {
           this._telegramUtils.sendReply({
@@ -182,7 +182,7 @@ export class NBURateBotUtils {
           user_id: ctx.from.id,
           user_name: ctx.from.username,
           is_subscribe_active: user.is_subscribe_active,
-          lang: ctx.from.language_code || defaultLang,
+          lang: ctx.from.language_code ?? defaultLang,
         });
       }
 
