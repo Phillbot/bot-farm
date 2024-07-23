@@ -1,7 +1,7 @@
 import express from 'express';
 import { inject, injectable } from 'inversify';
 
-import { NBURateBot } from '@telegram/index';
+import { NBURateBot, ReactClickerBot } from '@telegram/index';
 import { NBURateBotDailyExchangesJob } from '@cron-jobs/nbu-rate-bot-daily-exchanges.job';
 import { NBURateBotChartJob } from '@cron-jobs/nbu-rate-bot-chart.job';
 import { GlobalUtils } from '@helpers/global-utils';
@@ -19,6 +19,7 @@ export class ExpressApp {
     @inject(NBURateBot) private readonly _nbuRateBot: NBURateBot,
     @inject(NBURateBotChartJob) private readonly _nbuRateBotChartJob: NBURateBotChartJob,
     @inject(NBURateBotDailyExchangesJob) private readonly _nbuRateBotDailyExchangesJob: NBURateBotDailyExchangesJob,
+    @inject(ReactClickerBot) private readonly _reactClickerBot: ReactClickerBot,
     @inject(GlobalUtils) private readonly _globalUtils: GlobalUtils,
   ) {
     this._app = express();
@@ -53,5 +54,7 @@ export class ExpressApp {
     this._nbuRateBot.botStart();
     this._nbuRateBotChartJob.start();
     this._nbuRateBotDailyExchangesJob.start();
+
+    this._reactClickerBot.botStart();
   }
 }

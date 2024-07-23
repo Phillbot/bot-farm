@@ -24,7 +24,7 @@ export class NBURateBotStartCommand {
         user_id: ctx.from.id,
         user_name: ctx.from?.username,
         is_subscribe_active: false,
-        lang: ctx.from.language_code || defaultLang,
+        lang: ctx.from.language_code ?? defaultLang,
       });
     }
 

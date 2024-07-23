@@ -26,10 +26,16 @@ type RowButton = Readonly<{
   type: 'row';
 }>;
 
+type WebAppButton = Readonly<{
+  type: 'web_app';
+  text: string;
+  url: string;
+}>;
+
 type ButtonType = Readonly<{
-  type: 'text' | 'url' | 'row';
+  type: 'text' | 'url' | 'row' | 'web_app';
 }> &
-  (TextButton | UrlButton | RowButton);
+  (TextButton | UrlButton | RowButton | WebAppButton);
 
 @injectable()
 export class TelegramUtils {
@@ -77,6 +83,9 @@ export class TelegramUtils {
           break;
         case 'url':
           keyboard.url(button.text, button.url);
+          break;
+        case 'web_app':
+          keyboard.webApp(button.text, button.url);
           break;
         default:
           assertNever(type, false);

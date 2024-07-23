@@ -18,6 +18,8 @@ import {
 import { PrettyTableCreator } from '@helpers/table-creator';
 import { GlobalUtils } from '@helpers/global-utils';
 import { ExpressApp } from '@server/express-server';
+import { ReactClickerBotPlayCommand, ReactClickerBotStartCommand } from '@telegram/react-clicker-bot/commands';
+import { ReactClickerBot } from '@telegram/react-clicker-bot/react-clicker.bot';
 
 const container = new Container({ defaultScope: 'Singleton' });
 
@@ -41,5 +43,10 @@ container.bind<NBURateBotPostgresqlSequelize>(NBURateBotPostgresqlSequelize).toS
 
 container.bind<NBURateBotChartJob>(NBURateBotChartJob).toSelf();
 container.bind<NBURateBotDailyExchangesJob>(NBURateBotDailyExchangesJob).toSelf();
+
+container.bind<ReactClickerBot>(ReactClickerBot).toSelf();
+
+container.bind<ReactClickerBotStartCommand>(ReactClickerBotStartCommand).toSelf();
+container.bind<ReactClickerBotPlayCommand>(ReactClickerBotPlayCommand).toSelf();
 
 export default container;

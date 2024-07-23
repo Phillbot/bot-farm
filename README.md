@@ -13,17 +13,19 @@ TODO:
 
 **ENV vars**
 
-| Variable name                              | type                      |
-| ------------------------------------------ | ------------------------- |
-| ENV                                        | development \| production |
-| PORT                                       | number                    |
-| CONTACT_URL                                | string                    |
-| NBU_RATE_BOT_TOKEN                         | string                    |
-| NBU_RATE_CRON_SCHEMA                       | \* \* \* \* \*            |
-| NBU_RATE_EXCHANGE_API_URL                  | string                    |
-| NBU_RATE_WEB_LINK                          | string                    |
-| NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL | string                    |
-| NBU_RATE_EXCHANGE_CURRENCIES               | string (split by ,)       |
-| NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA        | \* \* \* \* \*            |
-| NBU_RATE_EXCHANGE_CRON_TIMEZONE            | string                    |
-| POSTGRESQL_DATABASE_CONNECT_URL            | string                    |
+| Variable name                              | description                              | type                      |
+| ------------------------------------------ | ---------------------------------------- | ------------------------- |
+| ENV                                        | current env                              | development \| production |
+| PORT                                       | app port                                 | number                    |
+| CONTACT_URL                                | any URL for server response in app start | string                    |
+| NBU_RATE_BOT_TOKEN                         | telegram bot token                       | string                    |
+| NBU_RATE_CRON_SCHEMA                       | cron schema for daily currencies message | \* \* \* \* \*            |
+| NBU_RATE_EXCHANGE_API_URL                  |                                          | string                    |
+| NBU_RATE_WEB_LINK                          |                                          | string                    |
+| NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL |                                          | string                    |
+| NBU_RATE_EXCHANGE_CURRENCIES               |                                          | string (split by ,)       |
+| NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA        |                                          | \* \* \* \* \*            |
+| NBU_RATE_EXCHANGE_CRON_TIMEZONE            |                                          | string                    |
+| POSTGRESQL_DATABASE_CONNECT_URL            |                                          | string                    |
+| REACT_CLICKER_BOT_TOKEN                    |                                          | string                    |
+| REACT_CLICKER_BOT_GAME_URL                 |                                          | string                    |
