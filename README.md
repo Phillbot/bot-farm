@@ -1,6 +1,6 @@
-# Bot Farm
+# Bot Hatchery
 
-Bot Farm is a project that manages multiple Telegram bots using the Grammy framework and Inversify for dependency injection. This project includes bots for NBU Rate and React Clicker.
+Bot Hatchery is a project that manages multiple Telegram bots using the Grammy framework and Inversify for dependency injection. This project includes bots for NBU Rate and React Clicker.
 
 ## Table of Contents
 
