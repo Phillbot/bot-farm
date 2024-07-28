@@ -25,3 +25,6 @@ nbu-exchange-bot-exchange-rates-table-rate = Rate
 nbu-exchange-bot-exchange-date = Date
 
 nbu-exchange-bot-weekly-chart = Weekly chart
+
+react-clicker-bot-start-command-descriptor = Welcome, friend!
+react-clicker-bot-play-command-descriptor  = Play the Game!
