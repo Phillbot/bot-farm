@@ -10,4 +10,5 @@ lerna-debug.log*
 dist
 .env
 node_modules
-.idea
+.DS_Store
+
