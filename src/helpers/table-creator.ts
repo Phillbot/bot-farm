@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Cell, PrettyTable } from 'prettytable.js';
 
+import { Logger } from '@helpers/logger';
 import { GlobalUtils } from './global-utils';
 
 export type PrettyTableHeaderKeysType<T> = Readonly<Map<Partial<keyof T>, string>>;
@@ -24,18 +25,30 @@ type TableBuilderType<T> = Readonly<{
 @injectable()
 export class PrettyTableCreator {
   constructor(@inject(GlobalUtils) private readonly _globalUtils: GlobalUtils) {}
+
+  /**
+   * Builds a PrettyTable with or without headers based on the provided properties.
+   * @param props - Configuration properties for building the table.
+   * @returns An instance of PrettyTable.
+   */
   public builder = <T>(props: TableBuilderType<T>): PrettyTable => {
     const prettyTable = new PrettyTable();
 
-    if (props.type === 'with-header') {
-      prettyTable.setHeader([...props.headerKeys.values()]);
+    try {
+      if (props.type === 'with-header') {
+        prettyTable.setHeader([...props.headerKeys.values()]);
+      }
+
+      const fields = props.type === 'with-header' ? [...props.headerKeys.keys()] : props.fields;
+
+      prettyTable.addRows(
+        props.data.map((k) => Object.values(this._globalUtils.pickKeysFromIterable(k, fields))) as Cell[][],
+      );
+
+      Logger.info('Table built successfully');
+    } catch (error) {
+      Logger.error('Error building table:', error);
     }
-
-    const fields = props.type === 'with-header' ? [...props.headerKeys.keys()] : props.fields;
-
-    prettyTable.addRows(
-      props.data.map((k) => Object.values(this._globalUtils.pickKeysFromIterable(k, fields))) as Cell[][],
-    );
 
     return prettyTable;
   };

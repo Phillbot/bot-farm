@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
-import { Random } from 'some-random-cat';
+import { Cat, Random } from 'some-random-cat';
+import { Logger } from './logger';
 
 export type CatType = {
   id: string;
@@ -14,10 +15,13 @@ export class GlobalUtils {
     return Object.fromEntries(keys.map((k) => [k, obj[k]]));
   }
 
-  public getRandomCat = async (): Promise<CatType> => {
+  public getRandomCat = async (): Promise<Cat | undefined | null> => {
     return await Random.getCat()
       .then((res) => res)
-      .catch((e) => e); // cat logs?
+      .catch((e) => {
+        Logger.error(e);
+        return undefined;
+      });
   };
 
   public isNotNull(v: unknown): boolean {

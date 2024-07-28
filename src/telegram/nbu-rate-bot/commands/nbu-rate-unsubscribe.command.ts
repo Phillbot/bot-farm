@@ -1,8 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { CommandContext } from 'grammy';
 
-import { NBURateBotContext } from '../nbu-rate.bot';
-import { COMMANDS, NBURateBotUtils } from '../nbu-rate.utils';
+import { COMMANDS, NBURateBotContext, NBURateBotUtils } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotUnsubscribeCommand {

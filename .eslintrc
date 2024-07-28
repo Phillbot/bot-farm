@@ -6,26 +6,27 @@
       "files": ["*.ts"],
       "extends": ["plugin:@typescript-eslint/recommended"],
       "parserOptions": {
-        "project": ["./tsconfig.json"]
+        "project": ["./tsconfig.json"],
       },
       "rules": {
+        "@typescript-eslint/no-namespace": "off",
         "sort-imports": [
           "error",
           {
-            "ignoreDeclarationSort": true
-          }
+            "ignoreDeclarationSort": true,
+          },
         ],
         "@typescript-eslint/quotes": [
           "error",
           "single",
           {
-            "allowTemplateLiterals": true
-          }
+            "allowTemplateLiterals": true,
+          },
         ],
         "import/order": ["error"],
         "no-console": "error",
-        "no-extra-boolean-cast": "error"
-      }
-    }
-  ]
+        "no-extra-boolean-cast": "error",
+      },
+    },
+  ],
 }

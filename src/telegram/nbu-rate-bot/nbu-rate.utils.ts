@@ -1,11 +1,15 @@
 import { inject, injectable } from 'inversify';
 import axios, { AxiosResponse } from 'axios';
-import { CommandContext, NextFunction } from 'grammy';
+import { CommandContext, Context, NextFunction, SessionFlavor } from 'grammy';
 
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 
-import { NBURateBotContext } from './nbu-rate.bot';
+import { EmojiFlavor } from '@grammyjs/emoji';
+import { NBURateBotUser } from '@database/nbu-rate-bot.db';
+import { I18nFlavor } from '@grammyjs/i18n';
+import { LanguageCode } from 'grammy/types';
+import { SessionData } from '@telegram/common/base-bot';
 
 type NBUPeriodRateType = Readonly<{
   exchangedate: string;
@@ -71,8 +75,16 @@ export type NBURateType = Readonly<{
 }>;
 
 export const mainCurrencies = ['USD', 'EUR'] as const;
-export const defaultLang = 'uk' as const;
-export const supportLangs = [defaultLang, 'en'] as const;
+export const defaultLang: LanguageCode = 'uk';
+
+export const supportedLangs: LanguageCode[] = [defaultLang, 'en'] as LanguageCode[];
+
+export type NBURateBotContext = EmojiFlavor<
+  Pick<NBURateBotUser, 'dataValues'> &
+    Context &
+    SessionFlavor<SessionData> &
+    I18nFlavor & { nbuExchangeData?: NBURateType[] }
+>;
 
 @injectable()
 export class NBURateBotUtils {

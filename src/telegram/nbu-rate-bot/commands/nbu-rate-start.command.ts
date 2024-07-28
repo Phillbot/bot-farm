@@ -4,14 +4,13 @@ import { inject, injectable } from 'inversify';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 
-import { NBURateBotContext } from '../nbu-rate.bot';
-import { defaultLang } from '../nbu-rate.utils';
+import { NBURateBotContext, defaultLang } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotStartCommand {
   constructor(
-    @inject(NBUCurrencyBotUser) private _nbuCurrencyBotUser: NBUCurrencyBotUser,
-    @inject(TelegramUtils) private _telegramUtils: TelegramUtils,
+    @inject(NBUCurrencyBotUser) private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
   ) {}
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
