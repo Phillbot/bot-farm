@@ -25,3 +25,6 @@ nbu-exchange-bot-exchange-rates-table-rate = Курс
 nbu-exchange-bot-exchange-date = Дата
 
 nbu-exchange-bot-weekly-chart = Тижневий графік
+
+react-clicker-bot-start-command-descriptor = Привіт, друже!
+react-clicker-bot-play-command-descriptor  = Грати в гру!

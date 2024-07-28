@@ -1,73 +1,97 @@
 import { injectable } from 'inversify';
 
+export enum LOG_LEVEL {
+  FULL = 'FULL',
+  COMPACT = 'COMPACT',
+  NONE = 'NONE',
+}
+
+export enum LOG_TYPE {
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+  DEBUG = 'DEBUG',
+}
+
 @injectable()
 export class Logger {
-  // eslint-disable-next-line
+  static logLevel: LOG_LEVEL = process.env.LOG_LEVEL as LOG_LEVEL;
+
   static info(message: string | object, ...optionalParams: any[]): void {
-    if (typeof message === 'object') {
-      message = JSON.stringify(message, null, 2);
-    }
-    // eslint-disable-next-line
-    console.info(Logger.formatMessage('INFO', message), ...optionalParams);
+    Logger.log(LOG_TYPE.INFO, message, ...optionalParams);
   }
 
-  // eslint-disable-next-line
   static warn(message: string | object, ...optionalParams: any[]): void {
-    if (typeof message === 'object') {
-      message = JSON.stringify(message, null, 2);
-    }
-    // eslint-disable-next-line
-    console.warn(Logger.formatMessage('WARN', message), ...optionalParams);
+    Logger.log(LOG_TYPE.WARN, message, ...optionalParams);
   }
 
-  // eslint-disable-next-line
   static error(message: string | object, ...optionalParams: any[]): void {
-    if (typeof message === 'object') {
-      message = JSON.stringify(message, null, 2);
-    }
-    // eslint-disable-next-line
-    console.error(Logger.formatMessage('ERROR', message), ...optionalParams);
+    Logger.log(LOG_TYPE.ERROR, message, ...optionalParams);
   }
 
-  // eslint-disable-next-line
   static debug(message: string | object, ...optionalParams: any[]): void {
-    if (typeof message === 'object') {
-      message = JSON.stringify(message, null, 2);
-    }
-    // eslint-disable-next-line
-    console.debug(Logger.formatMessage('DEBUG', message), ...optionalParams);
+    Logger.log(LOG_TYPE.DEBUG, message, ...optionalParams);
   }
 
-  // eslint-disable-next-line
   static table(data: any, columns?: string[]): void {
+    if (Logger.logLevel === LOG_LEVEL.NONE) {
+      return;
+    }
+
     if (columns) {
-      // eslint-disable-next-line
       console.table(data, columns);
     } else {
-      // eslint-disable-next-line
       console.table(data);
     }
   }
 
-  private static formatMessage(level: string, message: string): string {
-    const timestamp = new Date().toISOString();
-    let color = '';
-
-    switch (level) {
-      case 'INFO':
-        color = '\x1b[34m'; // Blue
-        break;
-      case 'WARN':
-        color = '\x1b[33m'; // Yellow
-        break;
-      case 'ERROR':
-        color = '\x1b[31m'; // Red
-        break;
-      case 'DEBUG':
-        color = '\x1b[32m'; // Green
-        break;
+  private static log(type: LOG_TYPE, message: string | object, ...optionalParams: any[]): void {
+    if (Logger.logLevel === LOG_LEVEL.NONE) {
+      return;
     }
 
-    return `${color}[${timestamp}] [${level}] ${message}\x1b[0m`; // Reset color
+    const formatMessage = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
+
+    switch (type) {
+      case LOG_TYPE.INFO:
+        if (Logger.logLevel === LOG_LEVEL.FULL || Logger.logLevel === LOG_LEVEL.COMPACT) {
+          console.info(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        }
+        break;
+      case LOG_TYPE.WARN:
+        if (Logger.logLevel === LOG_LEVEL.FULL || Logger.logLevel === LOG_LEVEL.COMPACT) {
+          console.warn(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        }
+        break;
+      case LOG_TYPE.ERROR:
+        if (Logger.logLevel === LOG_LEVEL.FULL || Logger.logLevel === LOG_LEVEL.COMPACT) {
+          console.error(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        }
+        break;
+      case LOG_TYPE.DEBUG:
+        if (Logger.logLevel === LOG_LEVEL.FULL) {
+          console.debug(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        }
+        break;
+    }
+  }
+
+  private static formatMessage(level: LOG_TYPE, message: string): string {
+    const timestamp = new Date().toISOString();
+
+    const getColor = () => {
+      switch (level) {
+        case LOG_TYPE.INFO:
+          return '\x1b[34m'; // Blue
+        case LOG_TYPE.WARN:
+          return '\x1b[33m'; // Yellow
+        case LOG_TYPE.ERROR:
+          return '\x1b[31m'; // Red
+        case LOG_TYPE.DEBUG:
+          return '\x1b[32m'; // Green
+      }
+    };
+
+    return `${getColor()}[${timestamp}] [${level}] ${message}\x1b[0m`; // Reset color
   }
 }

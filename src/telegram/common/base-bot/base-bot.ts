@@ -12,19 +12,18 @@ export abstract class BaseBot<T extends BotContext> {
   protected readonly _bot: Bot<T>;
   protected readonly _composer: Composer<T>;
   protected readonly _i18n: I18n<T>;
-  private readonly _commandsMethodsConfig: Map<string, { instance: ICommand }>;
-  private readonly _commandsMenuConfig: Map<string, string>;
-  private readonly _supportLangs: LanguageCode[];
-  private readonly _defaultLang: LanguageCode;
 
   constructor(
     token: string,
     defaultLocale: LanguageCode,
     localesDir: string,
-    commandsMethodsConfig: Map<string, { instance: ICommand }>,
-    commandsMenuConfig: Map<string, string>,
-    supportLangs: LanguageCode[],
-    defaultLang: LanguageCode,
+    private readonly _commandsMethodsConfig: Map<string, { instance: ICommand }>,
+    private readonly _commandsMenuConfig: Map<string, string>,
+    private readonly _supportedLangs: LanguageCode[],
+    private readonly _defaultLang: LanguageCode,
+    private readonly _specialUserIds?: number[],
+    private readonly _specialCommandsMethodsConfig?: Map<string, { instance: ICommand }>,
+    private readonly _specialCommandsMenuConfig?: Map<string, string>,
   ) {
     this._bot = new Bot<T>(token);
     this._composer = new Composer<T>();
@@ -33,22 +32,29 @@ export abstract class BaseBot<T extends BotContext> {
       useSession: true,
       directory: localesDir,
     });
-    this._commandsMethodsConfig = commandsMethodsConfig;
-    this._commandsMenuConfig = commandsMenuConfig;
-    this._supportLangs = supportLangs;
-    this._defaultLang = defaultLang;
   }
 
   private registerCommands(): void {
-    for (const [command, { instance }] of [...this._commandsMethodsConfig.entries()]) {
+    for (const [command, { instance }] of this._commandsMethodsConfig.entries()) {
       this._bot.command(command, (ctx) => instance.withCtx(ctx));
       Logger.info(`Registered command: ${command}`);
+    }
+
+    if (this._specialCommandsMethodsConfig) {
+      for (const [command, { instance }] of this._specialCommandsMethodsConfig.entries()) {
+        this._bot.command(command, (ctx) => {
+          if (this._specialUserIds?.includes(ctx.from?.id ?? -1)) {
+            instance.withCtx(ctx);
+            Logger.info(`Registered special command for user: ${ctx.from?.id}`);
+          }
+        });
+      }
     }
   }
 
   private async setCommandsMenu(): Promise<void> {
     await Promise.all(
-      this._supportLangs.map(async (lang) => {
+      this._supportedLangs.map(async (lang) => {
         await this._bot.api.setMyCommands(
           [...this._commandsMenuConfig.entries()].map(([command, translateKey]) => ({
             command,
@@ -59,6 +65,26 @@ export abstract class BaseBot<T extends BotContext> {
         Logger.info(`Set commands menu for language: ${lang}`);
       }),
     );
+
+    if (this._specialUserIds && this._specialCommandsMenuConfig) {
+      for (const userId of this._specialUserIds) {
+        for (const lang of this._supportedLangs) {
+          const allCommands = [...this._commandsMenuConfig.entries(), ...this._specialCommandsMenuConfig.entries()].map(
+            ([command, translateKey]) => ({
+              command,
+              description: this._i18n.t(lang, translateKey),
+            }),
+          );
+
+          await this._bot.api.setMyCommands(allCommands, {
+            language_code: lang === this._defaultLang ? undefined : lang,
+            scope: { type: 'chat', chat_id: userId },
+          });
+
+          Logger.info(`Set special commands menu for user: ${userId} and language: ${lang}`);
+        }
+      }
+    }
   }
 
   protected errorHandler(): void {
