@@ -5,8 +5,9 @@ import { CronJob } from 'cron';
 import { NBURateBot } from '@telegram/index';
 import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { PrettyTableCreator } from '@helpers/table-creator';
 import { NBURateBotUtils, NBURateType, defaultLang, mainCurrencies } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { Logger } from '@helpers/logger';
+import { PrettyTableCreator } from '@helpers/table-creator';
 
 import { nbuRateBotTimezone } from './utils';
 
@@ -59,8 +60,7 @@ export class NBURateBotDailyExchangesJob {
                         ]),
                       },
                     )
-                    // eslint-disable-next-line
-                    .catch((e) => console.error('exchangeTableSender', e));
+                    .catch((e) => Logger.error('exchangeTableSender', e));
 
                   r(delay);
                 });
@@ -69,8 +69,7 @@ export class NBURateBotDailyExchangesJob {
               }),
             );
           }
-          // eslint-disable-next-line
-          Promise.all(tasks).catch((e) => console.error(e));
+          Promise.all(tasks).catch((e) => Logger.error(e));
         }
       },
       timeZone: nbuRateBotTimezone,

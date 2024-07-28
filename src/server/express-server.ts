@@ -1,10 +1,11 @@
-import express from 'express';
+import express, { Application, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 
 import { NBURateBot, ReactClickerBot } from '@telegram/index';
 import { NBURateBotDailyExchangesJob } from '@cron-jobs/nbu-rate-bot-daily-exchanges.job';
 import { NBURateBotChartJob } from '@cron-jobs/nbu-rate-bot-chart.job';
 import { GlobalUtils } from '@helpers/global-utils';
+import { Logger } from '@helpers/logger';
 
 import { router } from './router';
 
@@ -12,7 +13,7 @@ const defaultPort = 8080;
 
 @injectable()
 export class ExpressApp {
-  private readonly _app: express.Application;
+  private readonly _app: Application;
   private readonly _PORT: number = process.env.PORT ? Number(process.env.PORT) : defaultPort;
 
   constructor(
@@ -23,38 +24,54 @@ export class ExpressApp {
     @inject(GlobalUtils) private readonly _globalUtils: GlobalUtils,
   ) {
     this._app = express();
+    this.setupMiddleware();
+    this.setupRoutes();
     this.bootstrap();
   }
-  private listen(): void {
+
+  private setupMiddleware(): void {
+    this._app.use(express.json());
+    this._app.use(express.urlencoded({ extended: true }));
+  }
+
+  private setupRoutes(): void {
+    this._app.use(router);
+
+    this._app.use((err: Error, req: Request, res: Response) => {
+      Logger.error(err.stack || 'Some error in app use');
+      res.status(500).json({ error: 'Something went wrong!' });
+    });
+  }
+
+  private async listen(): Promise<void> {
     this._app.listen(this._PORT, async () => {
       try {
-        this._app.use(express.json());
-        this._app.use(express.urlencoded({ extended: true }));
+        const cat = await this._globalUtils.getRandomCat();
 
-        router(this._app);
-
-        const { url } = await this._globalUtils.getRandomCat();
-
-        // eslint-disable-next-line
-        await console.table({
+        Logger.info({
           server: ExpressApp.name,
-          ok: true,
+          status: 'ok',
           port: this._PORT,
-          cat: url,
+          cat: cat?.url,
         });
       } catch (error) {
-        // eslint-disable-next-line
-        console.table({ ok: false });
+        Logger.error('Error during server startup:', error, { status: 'failed' });
       }
     });
   }
 
-  private bootstrap() {
-    this.listen();
-    this._nbuRateBot.botStart();
-    this._nbuRateBotChartJob.start();
-    this._nbuRateBotDailyExchangesJob.start();
+  private bootstrap(): void {
+    this.listen().catch((error) => {
+      Logger.error('Bootstrap error:', error);
+    });
 
-    this._reactClickerBot.botStart();
+    try {
+      this._nbuRateBot.botStart();
+      this._nbuRateBotChartJob.start();
+      this._nbuRateBotDailyExchangesJob.start();
+      this._reactClickerBot.botStart();
+    } catch (error) {
+      Logger.error('Error during bot or job startup:', error);
+    }
   }
 }

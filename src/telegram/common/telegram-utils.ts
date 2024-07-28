@@ -1,7 +1,8 @@
 import { injectable } from 'inversify';
 import { CommandContext, Context, InlineKeyboard } from 'grammy';
 import { ForceReply, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove } from 'grammy/types';
-import assertNever from '@helpers/assert-never';
+import { Logger } from '@helpers/logger';
+import assertNever from '@helpers/utils';
 
 type ReplyType<T extends Context> = Readonly<{
   ctx: CommandContext<T>;
@@ -44,19 +45,23 @@ export class TelegramUtils {
    * as separately method over grammy reply
    * is error handling in one place
    */
-  public sendReply<T extends Context>({ ctx, text, parse_mode, reply_markup }: ReplyType<T>) {
-    ctx
-      .reply(text, {
+
+  constructor() {}
+
+  public async sendReply<T extends Context>({ ctx, text, parse_mode, reply_markup }: ReplyType<T>): Promise<void> {
+    try {
+      await ctx.reply(text, {
         parse_mode,
         reply_markup,
-      })
-      .catch((error) => {
-        // eslint-disable-next-line
-        console.log(ctx.me, error);
-      })
-      //TODO: collect logs?
-      // eslint-disable-next-line
-      .finally(() => console.log(ctx.me, ctx.message));
+      });
+      Logger.info(`Message sent: ${ctx.message?.message_id}`);
+      Logger.info(ctx.me);
+      Logger.debug(ctx.message ?? {});
+    } catch (error) {
+      Logger.error(`Failed to send message to ${ctx.from?.id}`, error);
+    } finally {
+      Logger.debug('sendReply finished');
+    }
   }
 
   public codeMessageCreator(message: string, prefix: string = ''): string {

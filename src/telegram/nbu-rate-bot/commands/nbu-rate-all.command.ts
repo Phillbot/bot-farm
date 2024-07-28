@@ -5,8 +5,7 @@ import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { GlobalUtils } from '@helpers/global-utils';
 import { PrettyTableCreator } from '@helpers/table-creator';
 
-import { NBURateBotContext } from '../nbu-rate.bot';
-import { NBURateBotUtils, NBURateType, currencies } from '../nbu-rate.utils';
+import { NBURateBotContext, NBURateBotUtils, NBURateType, currencies } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotRateAllCommand {

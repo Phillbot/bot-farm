@@ -1,3 +1,4 @@
+import { Logger } from '@helpers/logger';
 import { injectable } from 'inversify';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
@@ -60,17 +61,15 @@ export class NBURateBotPostgresqlSequelize {
     this._connect
       .authenticate()
       .then(() =>
-        // eslint-disable-next-line
-        console.table({
+        Logger.info({
           database: NBURateBotPostgresqlSequelize.name,
           ok: true,
         }),
       )
-      // eslint-disable-next-line
-      .catch((error) => console.error(error));
+      .catch((error) => Logger.error(error));
   }
 
-  get user() {
+  get user(): typeof NBURateBotUser {
     return this._user;
   }
 }

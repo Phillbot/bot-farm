@@ -3,11 +3,12 @@ import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
 
-import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
-import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
-import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { NBURateBot } from '@telegram/index';
+import { TelegramUtils } from '@telegram/common/telegram-utils';
+import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
+import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { Logger } from '@helpers/logger';
 
 import { nbuRateBotTimezone } from './utils';
 
@@ -50,8 +51,7 @@ export class NBURateBotChartJob {
                       parse_mode: 'MarkdownV2',
                       caption: this.createCaption(subscribersUserIds[i].lang ?? defaultLang),
                     })
-                    // eslint-disable-next-line
-                    .catch((e) => console.error('chartSenderJob', e));
+                    .catch((e) => Logger.error('chartSenderJob', e));
                   r(delay);
                 });
 
@@ -59,8 +59,7 @@ export class NBURateBotChartJob {
               }),
             );
           }
-          // eslint-disable-next-line
-          Promise.all(tasks).catch((e) => console.error(e));
+          Promise.all(tasks).catch((e) => Logger.error(e));
         }
       },
       timeZone: nbuRateBotTimezone,

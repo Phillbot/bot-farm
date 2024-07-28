@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { CommandContext } from 'grammy';
 
 import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { ReactClickerBotContext } from '../react-clicker.bot';
+import { ReactClickerBotContext } from '../react-clicker.utils';
 
 @injectable()
 export class ReactClickerBotPlayCommand {
