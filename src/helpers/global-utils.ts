@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { Cat, Random } from 'some-random-cat';
+
 import { Logger } from './logger';
 
 export type CatType = {

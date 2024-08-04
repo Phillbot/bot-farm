@@ -1,8 +1,14 @@
+import crypto from 'crypto';
 import { injectable } from 'inversify';
 import { CommandContext, Context, InlineKeyboard } from 'grammy';
 import { ForceReply, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove } from 'grammy/types';
+
 import { Logger } from '@helpers/logger';
 import assertNever from '@helpers/utils';
+
+export type AuthData = {
+  initData: string;
+};
 
 type ReplyType<T extends Context> = Readonly<{
   ctx: CommandContext<T>;
@@ -98,5 +104,25 @@ export class TelegramUtils {
     });
 
     return keyboard;
+  }
+
+  public async verifyAuth(initData: string, token: string): Promise<boolean> {
+    try {
+      const clientDataKeys = new URLSearchParams(initData);
+      const hashFromClient = clientDataKeys.get('hash');
+      const dataToCheck: string[] = [];
+
+      clientDataKeys.sort();
+      clientDataKeys.forEach((v, k) => k !== 'hash' && dataToCheck.push(`${k}=${v}`));
+
+      const secret = crypto.createHmac('sha256', 'WebAppData').update(token);
+      const signature = crypto.createHmac('sha256', secret.digest()).update(dataToCheck.join('\n'));
+      const referenceHash = signature.digest('hex');
+
+      return referenceHash === hashFromClient;
+    } catch (error) {
+      Logger.error('Verification error:', error);
+      return false;
+    }
   }
 }
