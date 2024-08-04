@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { Random } from 'some-random-cat';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 
 import { NBURateBot, ReactClickerBot } from '@telegram/index';
@@ -34,7 +35,19 @@ export class ExpressApp {
   }
 
   private setupMiddleware(): void {
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // limit each IP to 100 requests per windowMs
+      message: {
+        success: false,
+        message: 'Too many requests, please try again later.',
+      },
+      headers: true,
+    });
+
     this._app.use(cors()); // TODO: Setup cors from .ENV
+
+    this._app.use(limiter);
     this._app.use(express.json());
     this._app.use(express.urlencoded({ extended: true }));
   }
