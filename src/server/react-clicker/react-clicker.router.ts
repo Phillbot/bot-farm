@@ -1,7 +1,9 @@
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
 import { inject, injectable } from 'inversify';
 import { ReactClickerBot } from '@telegram/index';
-import { Logger } from '@helpers/logger';
+
+import { getMe } from './controllers/get-me.controller';
+import { authMiddleware } from './middlewares/auth.middleware';
 
 @injectable()
 export class ReactClickerBotRouter {
@@ -13,23 +15,8 @@ export class ReactClickerBotRouter {
   }
 
   private initializeRoutes(): void {
-    this.router.post('/auth', this.handleAuth);
+    this.router.use(authMiddleware(this._reactClickerBot));
+
+    this.router.post('/getMe', getMe);
   }
-
-  private handleAuth = async (req: Request, res: Response): Promise<void> => {
-    const { initData } = req.body;
-
-    try {
-      const isValid = await this._reactClickerBot.verifyAuth({ initData });
-
-      if (isValid) {
-        res.status(200).json({ success: true });
-      } else {
-        res.status(401).json({ success: false, message: 'Unauthorized' });
-      }
-    } catch (error) {
-      Logger.error('Auth error:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
-  };
 }

@@ -13,7 +13,7 @@
     "noImplicitAny": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
     "skipLibCheck": true,
     "baseUrl": "./src",
     "paths": {
@@ -26,7 +26,7 @@
       "@cron-jobs/*": ["cron-jobs/*"],
     },
   },
-  "include": ["./src/**/*", "declaration.d.ts"],
+  "include": ["./src/**/*", "src/@types/**/*.d.ts", "declaration.d.ts"],
   "exclude": ["node_modules", "helpers/copy-dir.ts"],
   "ts-node": {
     "require": ["tsconfig-paths/register"],

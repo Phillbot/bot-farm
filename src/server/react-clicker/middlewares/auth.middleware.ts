@@ -1,0 +1,43 @@
+import { NextFunction, Request, Response } from 'express';
+import { ReactClickerBot } from '@telegram/index';
+import { Logger } from '@helpers/logger';
+
+export type User = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  isPremium: boolean;
+  allowsWriteToPm: boolean;
+};
+
+export function authMiddleware(bot: ReactClickerBot) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { initData } = req.body;
+      const authData = new URLSearchParams(initData);
+      const isValid = await bot.verifyAuth({ initData });
+
+      if (!isValid) {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+        return;
+      }
+
+      const user = JSON.parse(authData.get('user') ?? '{}');
+
+      req.user = {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        userName: user.username,
+        isPremium: user.is_premium,
+        allowsWriteToPm: user.allows_write_to_pm,
+      };
+
+      next();
+    } catch (error) {
+      Logger.error('Auth middleware error:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  };
+}
