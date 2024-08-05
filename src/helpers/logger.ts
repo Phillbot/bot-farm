@@ -1,4 +1,5 @@
-import { injectable } from 'inversify';
+import { LogLevel } from '@config/symbols';
+import { inject, injectable } from 'inversify';
 
 export enum LOG_LEVEL {
   FULL = 'FULL',
@@ -15,26 +16,26 @@ export enum LOG_TYPE {
 
 @injectable()
 export class Logger {
-  static logLevel: LOG_LEVEL = process.env.LOG_LEVEL as LOG_LEVEL;
+  constructor(@inject(LogLevel.$) private readonly _logLevel: LOG_LEVEL) {}
 
-  static info(message: string | object, ...optionalParams: any[]): void {
-    Logger.log(LOG_TYPE.INFO, message, ...optionalParams);
+  info(message: string | object, ...optionalParams: any[]): void {
+    this.log(LOG_TYPE.INFO, message, ...optionalParams);
   }
 
-  static warn(message: string | object, ...optionalParams: any[]): void {
-    Logger.log(LOG_TYPE.WARN, message, ...optionalParams);
+  warn(message: string | object, ...optionalParams: any[]): void {
+    this.log(LOG_TYPE.WARN, message, ...optionalParams);
   }
 
-  static error(message: string | object, ...optionalParams: any[]): void {
-    Logger.log(LOG_TYPE.ERROR, message, ...optionalParams);
+  error(message: string | object, ...optionalParams: any[]): void {
+    this.log(LOG_TYPE.ERROR, message, ...optionalParams);
   }
 
-  static debug(message: string | object, ...optionalParams: any[]): void {
-    Logger.log(LOG_TYPE.DEBUG, message, ...optionalParams);
+  debug(message: string | object, ...optionalParams: any[]): void {
+    this.log(LOG_TYPE.DEBUG, message, ...optionalParams);
   }
 
-  static table(data: any, columns?: string[]): void {
-    if (Logger.logLevel === LOG_LEVEL.NONE) {
+  table(data: any, columns?: string[]): void {
+    if (this._logLevel === LOG_LEVEL.NONE) {
       return;
     }
 
@@ -45,8 +46,8 @@ export class Logger {
     }
   }
 
-  private static log(type: LOG_TYPE, message: string | object, ...optionalParams: any[]): void {
-    if (Logger.logLevel === LOG_LEVEL.NONE) {
+  private log(type: LOG_TYPE, message: string | object, ...optionalParams: any[]): void {
+    if (this._logLevel === LOG_LEVEL.NONE) {
       return;
     }
 
@@ -54,29 +55,29 @@ export class Logger {
 
     switch (type) {
       case LOG_TYPE.INFO:
-        if (Logger.logLevel === LOG_LEVEL.FULL || Logger.logLevel === LOG_LEVEL.COMPACT) {
-          console.info(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        if (this._logLevel === LOG_LEVEL.FULL || this._logLevel === LOG_LEVEL.COMPACT) {
+          console.info(this.formatMessage(type, formatMessage), ...optionalParams);
         }
         break;
       case LOG_TYPE.WARN:
-        if (Logger.logLevel === LOG_LEVEL.FULL || Logger.logLevel === LOG_LEVEL.COMPACT) {
-          console.warn(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        if (this._logLevel === LOG_LEVEL.FULL || this._logLevel === LOG_LEVEL.COMPACT) {
+          console.warn(this.formatMessage(type, formatMessage), ...optionalParams);
         }
         break;
       case LOG_TYPE.ERROR:
-        if (Logger.logLevel === LOG_LEVEL.FULL || Logger.logLevel === LOG_LEVEL.COMPACT) {
-          console.error(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        if (this._logLevel === LOG_LEVEL.FULL || this._logLevel === LOG_LEVEL.COMPACT) {
+          console.error(this.formatMessage(type, formatMessage), ...optionalParams);
         }
         break;
       case LOG_TYPE.DEBUG:
-        if (Logger.logLevel === LOG_LEVEL.FULL) {
-          console.debug(Logger.formatMessage(type, formatMessage), ...optionalParams);
+        if (this._logLevel === LOG_LEVEL.FULL) {
+          console.debug(this.formatMessage(type, formatMessage), ...optionalParams);
         }
         break;
     }
   }
 
-  private static formatMessage(level: LOG_TYPE, message: string): string {
+  private formatMessage(level: LOG_TYPE, message: string): string {
     const timestamp = new Date().toISOString();
 
     const getColor = () => {

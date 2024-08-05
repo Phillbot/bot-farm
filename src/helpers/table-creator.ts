@@ -24,7 +24,10 @@ type TableBuilderType<T> = Readonly<{
 
 @injectable()
 export class PrettyTableCreator {
-  constructor(@inject(GlobalUtils) private readonly _globalUtils: GlobalUtils) {}
+  constructor(
+    @inject(GlobalUtils) private readonly _globalUtils: GlobalUtils,
+    @inject(Logger) private readonly _logger: Logger,
+  ) {}
 
   /**
    * Builds a PrettyTable with or without headers based on the provided properties.
@@ -45,9 +48,9 @@ export class PrettyTableCreator {
         props.data.map((k) => Object.values(this._globalUtils.pickKeysFromIterable(k, fields))) as Cell[][],
       );
 
-      Logger.info('Table built successfully');
+      this._logger.info('Table built successfully');
     } catch (error) {
-      Logger.error('Error building table:', error);
+      this._logger.error('Error building table:', error);
     }
 
     return prettyTable;

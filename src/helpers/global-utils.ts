@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Cat, Random } from 'some-random-cat';
 
 import { Logger } from './logger';
@@ -12,6 +12,8 @@ export type CatType = {
 
 @injectable()
 export class GlobalUtils {
+  constructor(@inject(Logger) private readonly _logger: Logger) {}
+
   public pickKeysFromIterable<T>(obj: T, keys: (keyof T)[]): { [k: string]: T[keyof T] } {
     return Object.fromEntries(keys.map((k) => [k, obj[k]]));
   }
@@ -20,7 +22,7 @@ export class GlobalUtils {
     return await Random.getCat()
       .then((res) => res)
       .catch((e) => {
-        Logger.error(e);
+        this._logger.error(e);
         return undefined;
       });
   };

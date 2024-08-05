@@ -2,14 +2,14 @@ import { CommandContext } from 'grammy';
 import { inject, injectable } from 'inversify';
 
 import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { NBUCurrencyBotUserService } from '@database/index';
 
 import { NBURateBotContext, defaultLang } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotStartCommand {
   constructor(
-    @inject(NBUCurrencyBotUser) private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(NBUCurrencyBotUserService) private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
     @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
   ) {}
 
@@ -19,7 +19,7 @@ export class NBURateBotStartCommand {
     }
 
     if (!ctx?.dataValues) {
-      await this._nbuCurrencyBotUser.createUser({
+      await this._nbuCurrencyBotUserService.createUser({
         user_id: ctx.from.id,
         user_name: ctx.from?.username,
         is_subscribe_active: false,

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 
+import { container } from '@config/inversify.config';
 import { ReactClickerBot } from '@telegram/index';
 import { ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
 import { Logger } from '@helpers/logger';
-import { container } from '@config/inversify.config';
 
 export type User = {
   id: string;
@@ -48,7 +48,7 @@ export function authMiddleware(bot: ReactClickerBot) {
 
       next();
     } catch (error) {
-      Logger.error('Auth middleware error:', error);
+      container.get<Logger>(Logger).error('Auth middleware error:', error);
       res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
   };
