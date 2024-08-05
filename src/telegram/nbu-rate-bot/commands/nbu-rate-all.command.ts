@@ -6,10 +6,12 @@ import { GlobalUtils } from '@helpers/global-utils';
 import { PrettyTableCreator } from '@helpers/table-creator';
 
 import { NBURateBotContext, NBURateBotUtils, NBURateType, currencies } from '../nbu-rate.utils';
+import { NbuBotWebLink } from '../symbols';
 
 @injectable()
 export class NBURateBotRateAllCommand {
   constructor(
+    @inject(NbuBotWebLink.$) private readonly _nbuBotWebLink: string,
     @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
     @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
     @inject(PrettyTableCreator) private readonly _prettyTableCreator: PrettyTableCreator,
@@ -46,7 +48,7 @@ export class NBURateBotRateAllCommand {
         {
           type: 'url',
           text: ctx.t('nbu-exchange-bot-exchange-rates-url-text'),
-          url: process.env.NBU_RATE_WEB_LINK!,
+          url: this._nbuBotWebLink,
         },
       ]),
     });

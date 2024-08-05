@@ -1,6 +1,10 @@
-import { Logger } from '@helpers/logger';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
+
+import { ENV } from '@config/symbols';
+import { Logger } from '@helpers/logger';
+import { ENV_TYPE } from '@helpers/types/env';
+import { NbuBotPostgresConnectUrl } from '@database/symbols';
 
 enum NBU_RATE_BOT_CONNECTION_DATA {
   TABLE_SUBSCRIBERS = 'bot_subscribers',
@@ -20,8 +24,8 @@ export class NBURateBotUser extends Model<InferAttributes<NBURateBotUser>, Infer
 
 @injectable()
 export class NBURateBotPostgresqlSequelize {
-  private readonly _connect = new Sequelize(process.env.POSTGRESQL_DATABASE_CONNECT_URL!, {
-    logging: process.env.ENV === 'development',
+  private readonly _connect = new Sequelize(this._nbuBotPostgresConnectUrl, {
+    logging: this._env === ENV_TYPE.DEV,
     define: {
       hooks: {},
     },
@@ -56,17 +60,21 @@ export class NBURateBotPostgresqlSequelize {
     },
   );
 
-  constructor() {
+  constructor(
+    @inject(ENV.$) private readonly _env: string,
+    @inject(NbuBotPostgresConnectUrl.$) private readonly _nbuBotPostgresConnectUrl: string,
+    @inject(Logger) private readonly _logger: Logger,
+  ) {
     // test connection
     this._connect
       .authenticate()
       .then(() =>
-        Logger.info({
+        this._logger.info({
           database: NBURateBotPostgresqlSequelize.name,
           ok: true,
         }),
       )
-      .catch((error) => Logger.error(error));
+      .catch((error) => this._logger.error(error));
   }
 
   get user(): typeof NBURateBotUser {

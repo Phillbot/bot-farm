@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { CommandContext, Context, InlineKeyboard } from 'grammy';
 import { ForceReply, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove } from 'grammy/types';
 
@@ -52,7 +52,7 @@ export class TelegramUtils {
    * is error handling in one place
    */
 
-  constructor() {}
+  constructor(@inject(Logger) private readonly _logger: Logger) {}
 
   public async sendReply<T extends Context>({ ctx, text, parse_mode, reply_markup }: ReplyType<T>): Promise<void> {
     try {
@@ -60,13 +60,13 @@ export class TelegramUtils {
         parse_mode,
         reply_markup,
       });
-      Logger.info(`Message sent: ${ctx.message?.message_id}`);
-      Logger.info(ctx.me);
-      Logger.debug(ctx.message ?? {});
+      this._logger.info(`Message sent: ${ctx.message?.message_id}`);
+      this._logger.info(ctx.me);
+      this._logger.debug(ctx.message ?? {});
     } catch (error) {
-      Logger.error(`Failed to send message to ${ctx.from?.id}`, error);
+      this._logger.error(`Failed to send message to ${ctx.from?.id}`, error);
     } finally {
-      Logger.debug('sendReply finished');
+      this._logger.debug('sendReply finished');
     }
   }
 
@@ -121,7 +121,7 @@ export class TelegramUtils {
 
       return referenceHash === hashFromClient;
     } catch (error) {
-      Logger.error('Verification error:', error);
+      this._logger.error('Verification error:', error);
       return false;
     }
   }

@@ -1,8 +1,9 @@
 import { inject, injectable } from 'inversify';
 import { LanguageCode } from 'grammy/types';
 
-import { BaseBot, ICommand } from '@telegram/common/base-bot';
+import { AbstractBaseBot, ICommand } from '@telegram/common/base-bot';
 import { LocalesDir } from '@telegram/common/symbols';
+import { Logger } from '@helpers/logger';
 
 import {
   NBURateBotRateAllCommand,
@@ -13,20 +14,21 @@ import {
 } from './commands';
 import { COMMANDS, NBURateBotUtils } from './nbu-rate.utils';
 import { NBURateBotContext } from './nbu-rate.utils';
-import { NbuBotToken, NbuDefaultLang, NbuSupportedLangs } from './symbols';
+import { NbuBotDefaultLang, NbuBotSupportedLangs, NbuBotToken } from './symbols';
 
 @injectable()
-export class NBURateBot extends BaseBot<NBURateBotContext> {
+export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
   constructor(
     @inject(NbuBotToken.$) token: string,
     @inject(LocalesDir.$) localesDir: string,
-    @inject(NbuSupportedLangs.$) supportedLangs: LanguageCode[],
-    @inject(NbuDefaultLang.$) defaultLang: LanguageCode,
+    @inject(NbuBotSupportedLangs.$) supportedLangs: LanguageCode[],
+    @inject(NbuBotDefaultLang.$) defaultLang: LanguageCode,
     @inject(NBURateBotStartCommand) nbuRateBotStartCommand: NBURateBotStartCommand,
     @inject(NBURateBotRateAllCommand) nbuRateBotRateAllCommand: NBURateBotRateAllCommand,
     @inject(NBURateBotRateMainCommand) nbuRateBotRateMainCommand: NBURateBotRateMainCommand,
     @inject(NBURateBotSubscribeCommand) nbuRateBotSubscribeCommand: NBURateBotSubscribeCommand,
     @inject(NBURateBotUnsubscribeCommand) nbuRateBotUnsubscribeCommand: NBURateBotUnsubscribeCommand,
+    @inject(Logger) logger: Logger,
     @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
   ) {
     super(
@@ -43,6 +45,7 @@ export class NBURateBot extends BaseBot<NBURateBotContext> {
       NBURateBot.createDescriptorsMap(),
       supportedLangs,
       defaultLang,
+      logger,
     );
   }
 

@@ -29,23 +29,25 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 
 ## Configuration
 
-| Variable name                              | Description                                       | Type                      |
-| ------------------------------------------ | ------------------------------------------------- | ------------------------- |
-| ENV                                        | Current environment                               | development \| production |
-| LOG_LEVEL                                  | Setup logger                                      | FULL \| COMPACT \| NONE   |
-| PORT                                       | App port                                          | number                    |
-| CONTACT_URL                                | Any URL for server response in app start          | string                    |
-| NBU_RATE_BOT_TOKEN                         | Token for Nbu bot                                 | string                    |
-| NBU_RATE_CRON_SCHEMA                       | Cron schema for daily currencies message          | \* \* \* \* \*            |
-| NBU_RATE_EXCHANGE_API_URL                  | API URL for exchange rates                        | string                    |
-| NBU_RATE_WEB_LINK                          | Web link for NBU rate                             | string                    |
-| NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL | API URL for exchange rates by date and currency   | string                    |
-| NBU_RATE_EXCHANGE_CURRENCIES               | Currencies for exchange rates, separated by comma | string (split by ,)       |
-| NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA        | Cron schema for chart updates                     | \* \* \* \* \*            |
-| NBU_RATE_EXCHANGE_CRON_TIMEZONE            | Timezone for cron jobs                            | string                    |
-| POSTGRESQL_DATABASE_CONNECT_URL            | PostgreSQL connection URL                         | string                    |
-| REACT_CLICKER_BOT_TOKEN                    | Token for React Clicker bot                       | string                    |
-| REACT_CLICKER_BOT_GAME_URL                 | URL for React Clicker bot game                    | string                    |
+| Variable name                                     | Description                                       | Type                         |
+| ------------------------------------------------- | ------------------------------------------------- | ---------------------------- |
+| ENV                                               | Current environment                               | development \| production    |
+| LOG_LEVEL                                         | Setup logger                                      | FULL \| COMPACT \| NONE      |
+| PORT                                              | App port                                          | number                       |
+| CONTACT_URL                                       | Any URL for server response in app start          | string                       |
+| NBU_RATE_EXCHANGE_BOT_TOKEN                       | Token for Nbu bot                                 | string                       |
+| NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_CONNECT_URL | PostgreSQL connection URL                         | string                       |
+| NBU_RATE_EXCHANGE_API_URL                         | API URL for exchange rates                        | string                       |
+| NBU_RATE_EXCHANGE_WEB_LINK                        | Web link for NBU rate                             | string                       |
+| NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL        | API URL for exchange rates by date and currency   | string                       |
+| NBU_RATE_EXCHANGE_CURRENCIES                      | Currencies for exchange rates, separated by comma | string (split by ,)          |
+| NBU_RATE_EXCHANGE_CURRENCY_TABLE_CRON_SCHEMA      | Cron schema for daily currencies message          | \* \* \* \* \*               |
+| NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA               | Cron schema for chart updates                     | \* \* \* \* \*               |
+| NBU_RATE_EXCHANGE_CRON_TIMEZONE                   | Timezone for cron jobs                            | string                       |
+| REACT_CLICKER_APP_BOT_TOKEN                       | Token for React Clicker bot                       | string                       |
+| REACT_CLICKER_APP_POSTGRESQL_DATABASE_CONNECT_URL | PostgreSQL connection URL for clicker bot         | string                       |
+| REACT_CLICKER_APP_GAME_URL                        | URL for React Clicker bot game                    | string                       |
+| REACT_CLICKER_APP_SESSION_DURATION_S              | Session duration in seconds                       | string (converted to number) |
 
 ## Usage
 

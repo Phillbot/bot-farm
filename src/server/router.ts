@@ -11,7 +11,6 @@ router.get('/*', async (_: Request, res: Response) => {
   res.send(
     `
     <div>
-      <a href=${process.env.CONTACT_URL} target='_blank'>Telegram</a>
       <img src=${cat?.url} alt='cat' />
     </div>
     `,

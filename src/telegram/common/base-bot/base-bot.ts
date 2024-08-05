@@ -1,14 +1,14 @@
-import { injectable } from 'inversify';
 import { Bot, Composer, GrammyError, HttpError, session } from 'grammy';
 import { I18n } from '@grammyjs/i18n';
 import { LanguageCode } from 'grammy/types';
 import { emojiParser } from '@grammyjs/emoji';
+import { injectable } from 'inversify';
 
 import { Logger } from '@helpers/logger';
 import { BotContext, ICommand } from './types';
 
 @injectable()
-export abstract class BaseBot<T extends BotContext> {
+export abstract class AbstractBaseBot<T extends BotContext> {
   protected readonly _bot: Bot<T>;
   protected readonly _composer: Composer<T>;
   protected readonly _i18n: I18n<T>;
@@ -21,6 +21,7 @@ export abstract class BaseBot<T extends BotContext> {
     private readonly _commandsMenuConfig: Map<string, string>,
     private readonly _supportedLangs: LanguageCode[],
     private readonly _defaultLang: LanguageCode,
+    private readonly _logger: Logger,
     private readonly _specialUserIds?: number[],
     private readonly _specialCommandsMethodsConfig?: Map<string, { instance: ICommand }>,
     private readonly _specialCommandsMenuConfig?: Map<string, string>,
@@ -37,7 +38,7 @@ export abstract class BaseBot<T extends BotContext> {
   private registerCommands(): void {
     for (const [command, { instance }] of this._commandsMethodsConfig.entries()) {
       this._bot.command(command, (ctx) => instance.withCtx(ctx));
-      Logger.info(`Registered command: ${command}`);
+      this._logger.info(`Registered command: ${command}`);
     }
 
     if (this._specialCommandsMethodsConfig) {
@@ -45,7 +46,7 @@ export abstract class BaseBot<T extends BotContext> {
         this._bot.command(command, (ctx) => {
           if (this._specialUserIds?.includes(ctx.from?.id ?? -1)) {
             instance.withCtx(ctx);
-            Logger.info(`Registered special command for user: ${ctx.from?.id}`);
+            this._logger.info(`Registered special command for user: ${ctx.from?.id}`);
           }
         });
       }
@@ -62,7 +63,7 @@ export abstract class BaseBot<T extends BotContext> {
           })),
           { language_code: lang === this._defaultLang ? undefined : lang },
         );
-        Logger.info(`Set commands menu for language: ${lang}`);
+        this._logger.info(`Set commands menu for language: ${lang}`);
       }),
     );
 
@@ -81,7 +82,7 @@ export abstract class BaseBot<T extends BotContext> {
             scope: { type: 'chat', chat_id: userId },
           });
 
-          Logger.info(`Set special commands menu for user: ${userId} and language: ${lang}`);
+          this._logger.info(`Set special commands menu for user: ${userId} and language: ${lang}`);
         }
       }
     }
@@ -90,14 +91,14 @@ export abstract class BaseBot<T extends BotContext> {
   protected errorHandler(): void {
     this._bot.catch((err) => {
       const ctx = err.ctx;
-      Logger.error(`Error while handling update ${ctx.update.update_id}:`);
+      this._logger.error(`Error while handling update ${ctx.update.update_id}:`);
       const e = err.error;
       if (e instanceof GrammyError) {
-        Logger.error('Error in request:', e.description);
+        this._logger.error('Error in request:', e.description);
       } else if (e instanceof HttpError) {
-        Logger.error('Could not contact Telegram:', e);
+        this._logger.error('Could not contact Telegram:', e);
       } else {
-        Logger.error('Unknown error:', e);
+        this._logger.error('Unknown error:', e);
       }
     });
   }
@@ -112,7 +113,7 @@ export abstract class BaseBot<T extends BotContext> {
     await this.setCommandsMenu();
     await this._bot.start({
       onStart: (bot) => {
-        Logger.info(`Bot started: ${this.constructor.name}`, bot);
+        this._logger.info(`Bot started: ${this.constructor.name}`, bot);
       },
       drop_pending_updates: true,
     });

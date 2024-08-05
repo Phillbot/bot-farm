@@ -5,11 +5,13 @@ import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration } from 'chart.js';
 
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { NbuBotCurrencies } from './symbols';
 
 @injectable()
 export class NBURateBotChartBuilder {
   constructor(
     @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
+    @inject(NbuBotCurrencies.$) private readonly _nbuBotCurrencies: string,
     @unmanaged() private _startDate: string,
     @unmanaged() private _endDate: string,
   ) {}
@@ -17,7 +19,7 @@ export class NBURateBotChartBuilder {
   public async build(): Promise<Buffer> {
     const { data } = await this._nbuRateBotUtils.getNBUExchangeRateByPeriod(this._startDate, this._endDate);
 
-    const currencies = process.env.NBU_RATE_EXCHANGE_CURRENCIES?.split(',') ?? [];
+    const currencies = this._nbuBotCurrencies?.split(',') ?? [];
     const filteredData = data.filter(({ cc }) => currencies.includes(cc));
 
     const labels = [...new Set(filteredData.map(({ exchangedate }) => exchangedate))];

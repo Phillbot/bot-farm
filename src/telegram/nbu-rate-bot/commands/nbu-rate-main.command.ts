@@ -5,10 +5,12 @@ import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { PrettyTableCreator } from '@helpers/table-creator';
 
 import { NBURateBotContext, NBURateBotUtils, NBURateType, mainCurrencies } from '../nbu-rate.utils';
+import { NbuBotWebLink } from '../symbols';
 
 @injectable()
 export class NBURateBotRateMainCommand {
   constructor(
+    @inject(NbuBotWebLink.$) private readonly _nbuBotWebLink: string,
     @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
     @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
     @inject(PrettyTableCreator) private readonly _prettyTableCreator: PrettyTableCreator,
@@ -36,7 +38,7 @@ export class NBURateBotRateMainCommand {
         {
           type: 'url',
           text: ctx.t('nbu-exchange-bot-exchange-rates-url-text'),
-          url: process.env.NBU_RATE_WEB_LINK!,
+          url: this._nbuBotWebLink,
         },
       ]),
     });

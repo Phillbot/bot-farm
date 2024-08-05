@@ -10,6 +10,8 @@ import { NBURateBotChartJob } from '@cron-jobs/nbu-rate-bot-chart.job';
 import { GlobalUtils } from '@helpers/global-utils';
 import { Logger } from '@helpers/logger';
 
+import { ContactUrl, PORT } from '@config/symbols';
+
 import { ReactClickerBotRouter } from './react-clicker/react-clicker.router';
 import { router } from './router';
 
@@ -18,15 +20,18 @@ const defaultPort = 8080;
 @injectable()
 export class ExpressApp {
   private readonly _app: Application;
-  private readonly _PORT: number = process.env.PORT ? Number(process.env.PORT) : defaultPort;
+  private readonly _PORT: number = this._port ?? defaultPort;
 
   constructor(
+    @inject(PORT.$) private readonly _port: number,
+    @inject(ContactUrl.$) private readonly _contactUrl: string,
     @inject(NBURateBot) private readonly _nbuRateBot: NBURateBot,
     @inject(NBURateBotChartJob) private readonly _nbuRateBotChartJob: NBURateBotChartJob,
     @inject(NBURateBotDailyExchangesJob) private readonly _nbuRateBotDailyExchangesJob: NBURateBotDailyExchangesJob,
     @inject(ReactClickerBot) private readonly _reactClickerBot: ReactClickerBot,
     @inject(GlobalUtils) private readonly _globalUtils: GlobalUtils,
     @inject(ReactClickerBotRouter) private readonly _reactClickerBotRouter: ReactClickerBotRouter,
+    @inject(Logger) private readonly _logger: Logger,
   ) {
     this._app = express();
     this.setupMiddleware();
@@ -64,7 +69,7 @@ export class ExpressApp {
       res.send(
         `
           <div>
-            <a href=${process.env.CONTACT_URL} target='_blank'>Telegram</a>
+            <a href=${this._contactUrl} target='_blank'>Telegram</a>
             <img src=${cat?.url} alt='cat' />
           </div>
           `,
@@ -72,7 +77,7 @@ export class ExpressApp {
     });
 
     this._app.use((err: Error, req: Request, res: Response) => {
-      Logger.error(err.stack || 'Some error in app use');
+      this._logger.error(err.stack || 'Some error in app use');
       res.status(500).json({ error: 'Something went wrong!' });
     });
   }
@@ -82,21 +87,21 @@ export class ExpressApp {
       try {
         const cat = await this._globalUtils.getRandomCat();
 
-        Logger.info({
+        this._logger.info({
           server: ExpressApp.name,
           status: 'ok',
           port: this._PORT,
           cat: cat?.url,
         });
       } catch (error) {
-        Logger.error('Error during server startup:', error, { status: 'failed' });
+        this._logger.error('Error during server startup:', error, { status: 'failed' });
       }
     });
   }
 
   private bootstrap(): void {
     this.listen().catch((error) => {
-      Logger.error('Bootstrap error:', error);
+      this._logger.error('Bootstrap error:', error);
     });
 
     try {
@@ -105,7 +110,7 @@ export class ExpressApp {
       this._nbuRateBotDailyExchangesJob.start();
       this._reactClickerBot.botStart();
     } catch (error) {
-      Logger.error('Error during bot or job startup:', error);
+      this._logger.error('Error during bot or job startup:', error);
     }
   }
 }

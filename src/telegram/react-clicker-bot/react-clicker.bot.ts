@@ -1,9 +1,10 @@
 import { inject, injectable } from 'inversify';
 import { LanguageCode } from 'grammy/types';
 
-import { BaseBot, ICommand } from '@telegram/common/base-bot';
+import { AbstractBaseBot, ICommand } from '@telegram/common/base-bot';
 import { LocalesDir } from '@telegram/common/symbols';
 import { AuthData, TelegramUtils } from '@telegram/common/telegram-utils';
+import { Logger } from '@helpers/logger';
 
 import { ReactClickerBotPlayCommand, ReactClickerBotStartCommand } from './commands';
 import { COMMANDS } from './react-clicker.utils';
@@ -11,7 +12,7 @@ import { ReactClickerBotContext } from './react-clicker.utils';
 import { ReactClickerBotToken, ReactClickerDefaultLang, ReactClickerSupportedLangs } from './symbols';
 
 @injectable()
-export class ReactClickerBot extends BaseBot<ReactClickerBotContext> {
+export class ReactClickerBot extends AbstractBaseBot<ReactClickerBotContext> {
   constructor(
     @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
     @inject(ReactClickerBotToken.$) private readonly _token: string,
@@ -20,6 +21,7 @@ export class ReactClickerBot extends BaseBot<ReactClickerBotContext> {
     @inject(ReactClickerDefaultLang.$) defaultLang: LanguageCode,
     @inject(ReactClickerBotStartCommand) reactClickerBotStartCommand: ReactClickerBotStartCommand,
     @inject(ReactClickerBotPlayCommand) reactClickerBotPlayCommand: ReactClickerBotPlayCommand,
+    @inject(Logger) logger: Logger,
   ) {
     super(
       _token,
@@ -29,6 +31,7 @@ export class ReactClickerBot extends BaseBot<ReactClickerBotContext> {
       ReactClickerBot.createDescriptorsMap(),
       supportLangs,
       defaultLang,
+      logger,
     );
   }
 

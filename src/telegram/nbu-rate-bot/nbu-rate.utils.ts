@@ -2,14 +2,15 @@ import { inject, injectable } from 'inversify';
 import axios, { AxiosResponse } from 'axios';
 import { CommandContext, Context, NextFunction, SessionFlavor } from 'grammy';
 
-import { NBUCurrencyBotUser } from '@database/nbu-rate-bot-user.entity';
+import { NBUCurrencyBotUserService } from '@database/index';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 
 import { EmojiFlavor } from '@grammyjs/emoji';
-import { NBURateBotUser } from '@database/nbu-rate-bot.db';
+import { NBURateBotUser } from '@database/nbu-rate-bot/nbu-rate-bot.db';
 import { I18nFlavor } from '@grammyjs/i18n';
 import { LanguageCode } from 'grammy/types';
 import { SessionData } from '@telegram/common/base-bot';
+import { NbuBotApiUrl, NbuBotApiUrlByDate } from './symbols';
 
 type NBUPeriodRateType = Readonly<{
   exchangedate: string;
@@ -89,13 +90,15 @@ export type NBURateBotContext = EmojiFlavor<
 @injectable()
 export class NBURateBotUtils {
   constructor(
-    @inject(NBUCurrencyBotUser) private readonly _nbuCurrencyBotUser: NBUCurrencyBotUser,
+    @inject(NbuBotApiUrlByDate.$) private readonly _nbuBotApiUrlByDate: string,
+    @inject(NbuBotApiUrl.$) private readonly _nbuBotApiUrl: string,
+    @inject(NBUCurrencyBotUserService) private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
     @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
   ) {}
 
   public getNBUExchangeRate = (): Promise<AxiosResponse<NBURateType[]>> => {
     return axios
-      .get(String(process.env.NBU_RATE_EXCHANGE_API_URL))
+      .get(this._nbuBotApiUrl)
       .then((res) => res)
       .catch((e) => e);
   };
@@ -111,12 +114,7 @@ export class NBURateBotUtils {
     startDate: string,
     endDate: string,
   ): Promise<AxiosResponse<NBUPeriodRateType[]>> => {
-    const url = String(
-      process.env.NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL?.replace('{{startDate}}', startDate)?.replace(
-        '{{endDate}}',
-        endDate,
-      ),
-    );
+    const url = String(this._nbuBotApiUrlByDate?.replace('{{startDate}}', startDate)?.replace('{{endDate}}', endDate));
 
     return axios
       .get(url)
@@ -132,7 +130,7 @@ export class NBURateBotUtils {
     const isSubscribeAction = type === COMMANDS.SUBSCRIBE;
 
     const createUser = async () => {
-      await this._nbuCurrencyBotUser
+      await this._nbuCurrencyBotUserService
         .createUser({
           user_id: userId,
           user_name: ctx.from?.username,
@@ -150,7 +148,7 @@ export class NBURateBotUtils {
     };
 
     const updateSubscribe = async () => {
-      this._nbuCurrencyBotUser
+      this._nbuCurrencyBotUserService
         .updateUser({
           user_id: userId,
           user_name: ctx.from?.username,
@@ -184,13 +182,13 @@ export class NBURateBotUtils {
       return;
     }
 
-    const user = await this._nbuCurrencyBotUser.getUserById({
+    const user = await this._nbuCurrencyBotUserService.getUserById({
       user_id: ctx.from.id,
     });
 
     if (user?.dataValues) {
       if (user.dataValues.lang !== ctx.from.language_code) {
-        await this._nbuCurrencyBotUser.updateUser({
+        await this._nbuCurrencyBotUserService.updateUser({
           user_id: ctx.from.id,
           user_name: ctx.from.username,
           is_subscribe_active: user.is_subscribe_active,
