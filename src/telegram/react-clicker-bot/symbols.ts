@@ -9,3 +9,7 @@ export namespace ReactClickerSupportedLangs {
 export namespace ReactClickerDefaultLang {
   export const $ = Symbol.for('REACT_CLICKER_DEFAULT_LANG');
 }
+
+export namespace ReactClickerSessionDuration {
+  export const $ = Symbol.for('REACT_CLICKER_APP_SESSION_DURATION');
+}
