@@ -1,3 +1,6 @@
+Here's the updated `README.md` for the Bot Hatchery project, incorporating the changes and additions you've specified:
+
+````markdown
 # Bot Hatchery
 
 Bot Hatchery is a project that manages multiple Telegram bots using the Grammy framework and Inversify for dependency injection. This project includes bots for NBU Rate and React Clicker.
@@ -18,12 +21,13 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
    git clone https://github.com/Phillbot/bot-farm.git
    cd bot-farm
    ```
+````
 
 2. Install dependencies:
 
-```bash
-  npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. Create a .env file in the root directory and fill in the necessary environment variables.
 
@@ -48,18 +52,19 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 | REACT_CLICKER_APP_POSTGRESQL_DATABASE_CONNECT_URL | PostgreSQL connection URL for clicker bot         | string                       |
 | REACT_CLICKER_APP_GAME_URL                        | URL for React Clicker bot game                    | string                       |
 | REACT_CLICKER_APP_SESSION_DURATION_S              | Session duration in seconds                       | string (converted to number) |
+| REACT_CLICKER_APP_BOT_TIME_ZONE                   | Timezone for React Clicker bot                    | string                       |
 
 ## Usage
 
 To start the project, run:
 
-```
+```bash
 npm start
 ```
 
 ## Project Structure
 
-```
+```plaintext
 src/
 │
 ├── config/
@@ -78,12 +83,17 @@ src/
 │
 ├── database/
 │ └── nbu-rate-bot-user.entity.ts
+│ └── react-clicker-bot/
+│    └── react-clicker-bot-player.service.ts
+│    └── react-clicker-bot.db.ts
+│    └── react-clicker-bot.models.ts
+│    └── types.ts
 │
 ├── cron-jobs/
 │ └── ...
 │
 └── server/
-└── express-server.ts
+   └── express-server.ts
 ```
 
 ## License
@@ -95,9 +105,13 @@ This project is licensed under the MIT License.
 **_TODO_**
 
 - [x] **Remove consoles, add logger**: Replace all `console` statements with proper logging using the logger module.
-- [ ] **Limit requests**: Implement request limiting to prevent abuse
+- [ ] **Limit requests**: Implement request limiting to prevent abuse.
 - [ ] **Connect JIRA**: Integrate JIRA for project management and issue tracking.
 - [ ] **Queue + Redis**: Implement a queuing system with Redis for better task management and performance.
 - [ ] **Move under express control**: Manage the bot under Express for more flexible server actions (webhooks, etc.).
 
 ---
+
+```
+
+```
