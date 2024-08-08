@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-
 import { container } from '@config/inversify.config';
 import { ReactClickerBot } from '@telegram/index';
 import { ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
