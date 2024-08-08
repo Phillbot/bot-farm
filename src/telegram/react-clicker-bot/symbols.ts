@@ -17,3 +17,7 @@ export namespace ReactClickerAppGameUrl {
 export namespace ReactClickerSessionDuration {
   export const $ = Symbol.for('REACT_CLICKER_APP_SESSION_DURATION_S');
 }
+
+export namespace ReactClickerTimeZone {
+  export const $ = Symbol.for('REACT_CLICKER_APP_BOT_TIME_ZONE');
+}

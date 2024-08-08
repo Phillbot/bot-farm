@@ -1,21 +1,20 @@
 import { inject, injectable } from 'inversify';
 import { DataTypes, Sequelize } from 'sequelize';
-
 import { ENV } from '@config/symbols';
 import { Logger } from '@helpers/logger';
 import { ENV_TYPE } from '@helpers/types/env';
 import { ReactClickerPostgresConnectUrl } from '@database/symbols';
-
 import {
   Ability,
   ActiveEnergyByUser,
+  Boost,
   LastSession,
   REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA,
   Referral,
   User,
   UserAbility,
   UserStatus,
-} from './types';
+} from './react-clicker-bot.models';
 
 @injectable()
 export class ReactClickerBotSequelize {
@@ -95,7 +94,7 @@ export class ReactClickerBotSequelize {
           allowNull: false,
         },
         reg_data: {
-          type: DataTypes.DATE,
+          type: DataTypes.BIGINT,
           allowNull: false,
         },
         referral_id: {
@@ -156,6 +155,26 @@ export class ReactClickerBotSequelize {
       {
         schema: REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA.SCHEMA,
         tableName: REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA.TABLE_USER_REFERRALS,
+        timestamps: false,
+        sequelize: this._connect,
+      },
+    );
+
+    Boost.init(
+      {
+        user_id: {
+          type: DataTypes.BIGINT,
+          primaryKey: true,
+          allowNull: false,
+        },
+        last_boost_run: {
+          type: DataTypes.BIGINT,
+          allowNull: false,
+        },
+      },
+      {
+        schema: REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA.SCHEMA,
+        tableName: REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA.TABLE_BOOSTS,
         timestamps: false,
         sequelize: this._connect,
       },
@@ -230,11 +249,11 @@ export class ReactClickerBotSequelize {
           },
         },
         last_login: {
-          type: DataTypes.DATE,
+          type: DataTypes.BIGINT,
           allowNull: true,
         },
         last_logout: {
-          type: DataTypes.DATE,
+          type: DataTypes.BIGINT,
           allowNull: true,
         },
       },
@@ -277,5 +296,9 @@ export class ReactClickerBotSequelize {
 
   get lastSession(): typeof LastSession {
     return LastSession;
+  }
+
+  get boost(): typeof Boost {
+    return Boost;
   }
 }

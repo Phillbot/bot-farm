@@ -6,6 +6,8 @@ import { getMe } from './controllers/get-me.controller';
 import { authMiddleware } from './middlewares/auth.middleware';
 import { updateBalance } from './controllers/update-balance.controller';
 import { logout } from './controllers/logout.controller';
+import { updateEnergy } from './controllers/update-energy.controller';
+import { updateBoost } from './controllers/update-boost.controller';
 
 @injectable()
 export class ReactClickerBotRouter {
@@ -21,6 +23,8 @@ export class ReactClickerBotRouter {
 
     this.router.post('/getMe', getMe);
     this.router.post('/updateBalance', updateBalance);
+    this.router.post('/updateEnergy', updateEnergy);
+    this.router.post('/updateBoost', updateBoost);
     this.router.post('/logout', logout);
   }
 }

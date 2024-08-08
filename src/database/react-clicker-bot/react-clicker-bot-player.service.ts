@@ -3,12 +3,12 @@ import { Transaction } from 'sequelize';
 
 import { Logger } from '@helpers/logger';
 
-import { ActiveEnergyByUser, LastSession, Referral, User, UserAbility } from './types';
+import { ActiveEnergyByUser, Boost, LastSession, Referral, User, UserAbility } from './react-clicker-bot.models';
 import { ReactClickerBotSequelize } from './react-clicker-bot.db';
 
 interface ExtendedUser {
   user_id: number;
-  reg_data: Date;
+  reg_data: number;
   referral_id?: number;
   user_name?: string;
   first_name?: string;
@@ -18,6 +18,7 @@ interface ExtendedUser {
   referrals: Referral[];
   activeEnergy?: ActiveEnergyByUser;
   lastSession?: LastSession;
+  boost?: Boost;
 }
 
 @injectable()
@@ -140,6 +141,7 @@ export class ReactClickerBotPlayerService {
       const referrals = await this.getUserReferrals(user_id);
       const activeEnergy = await this.getUserActiveEnergy(user_id);
       const lastSession = await this.getUserLastSession(user_id);
+      const boost = await this.getUserBoost(user_id);
 
       if (user) {
         const extendedUser: ExtendedUser = {
@@ -154,6 +156,7 @@ export class ReactClickerBotPlayerService {
           referrals: referrals ? referrals.map((referral) => referral.toJSON()) : [],
           activeEnergy: activeEnergy ?? undefined,
           lastSession: lastSession ?? undefined,
+          boost: boost ?? undefined,
         };
 
         return extendedUser;
@@ -166,7 +169,13 @@ export class ReactClickerBotPlayerService {
     }
   }
 
-  public async updateBalanceAndLogout(user_id: number, balance: number, lastLogout: Date, lastLogin: Date) {
+  public async updateBalanceAndLogout(
+    user_id: number,
+    balance: number,
+    lastLogout: number,
+    lastLogin: number,
+    activeEnergy: number,
+  ) {
     const transaction = await this._reactClickerBotSequelize.sequelize.transaction();
     try {
       await this._reactClickerBotSequelize.user.update({ balance }, { where: { user_id }, transaction });
@@ -176,11 +185,24 @@ export class ReactClickerBotPlayerService {
         { where: { user_id }, transaction },
       );
 
+      await this._reactClickerBotSequelize.activeEnergy.update(
+        { active_energy: activeEnergy },
+        { where: { user_id }, transaction },
+      );
+
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
       this._logger.error(JSON.stringify(error));
       throw error;
     }
+  }
+
+  public async getUserBoost(user_id: number) {
+    return this._reactClickerBotSequelize.boost.findOne({ where: { user_id } }).catch((e) => this._logger.error(e));
+  }
+
+  public async updateUserBoost(user_id: number, last_boost_run: number) {
+    return this._reactClickerBotSequelize.boost.upsert({ user_id, last_boost_run }).catch((e) => this._logger.error(e));
   }
 }

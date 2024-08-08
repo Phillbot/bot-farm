@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { container } from '@config/inversify.config';
 import { ReactClickerBot } from '@telegram/index';
-import { ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
 import { Logger } from '@helpers/logger';
 
 export type User = {
@@ -18,14 +17,6 @@ export function authMiddleware(bot: ReactClickerBot) {
     try {
       const { initData } = req.body;
       const authData = new URLSearchParams(initData);
-      const authDate = parseInt(authData.get('auth_date') ?? '0', 10);
-      const currentTime = Math.floor(Date.now() / 1000);
-      const timeLimit = Number(container.get<string>(ReactClickerSessionDuration.$));
-
-      if (currentTime - authDate > timeLimit) {
-        res.status(401).json({ success: false, message: 'Unauthorized: auth_date is expired' });
-        return;
-      }
 
       const isValid = await bot.verifyAuth({ initData });
 
