@@ -4,6 +4,8 @@ import { ReactClickerBot } from '@telegram/index';
 
 import { getMe } from './controllers/get-me.controller';
 import { authMiddleware } from './middlewares/auth.middleware';
+import { updateBalance } from './controllers/update-balance.controller';
+import { logout } from './controllers/logout.controller';
 
 @injectable()
 export class ReactClickerBotRouter {
@@ -18,5 +20,7 @@ export class ReactClickerBotRouter {
     this.router.use(authMiddleware(this._reactClickerBot));
 
     this.router.post('/getMe', getMe);
+    this.router.post('/updateBalance', updateBalance);
+    this.router.post('/logout', logout);
   }
 }
