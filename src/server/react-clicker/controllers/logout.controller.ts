@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
+import { Logger } from '@helpers/logger';
 import { container } from '@config/inversify.config';
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
-import { Logger } from '@helpers/logger';
 
 export async function logout(req: Request, res: Response): Promise<void> {
   try {
     const user = req.user;
-    const { balance, lastLogoutTimestamp, lastLoginTimestamp } = req.body;
+    const { balance, lastLogoutTimestamp, lastLoginTimestamp, activeEnergy } = req.body;
 
     if (!user) {
       res.status(404).json({ ok: false, error: 'User not found' });
@@ -14,11 +14,13 @@ export async function logout(req: Request, res: Response): Promise<void> {
     }
 
     const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
+
     await playerService.updateBalanceAndLogout(
       Number(user.id),
       balance,
-      new Date(lastLogoutTimestamp),
-      new Date(lastLoginTimestamp),
+      lastLogoutTimestamp, // Передаем время в миллисекундах
+      lastLoginTimestamp, // Передаем время в миллисекундах
+      activeEnergy,
     );
 
     res.status(200).json({ ok: true });

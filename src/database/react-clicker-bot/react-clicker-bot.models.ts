@@ -9,11 +9,17 @@ export enum REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA {
   TABLE_USER_REFERRALS = 'referrals',
   TABLE_ACTIVE_ENERGY = 'active_energy_by_user',
   TABLE_LAST_SESSIONS = 'last_sessions',
+  TABLE_BOOSTS = 'boosts',
 }
 
 export class UserStatus extends Model<InferAttributes<UserStatus>, InferCreationAttributes<UserStatus>> {
   declare status_id: CreationOptional<number>;
   declare status_name: string;
+}
+
+export class Boost extends Model<InferAttributes<Boost>, InferCreationAttributes<Boost>> {
+  declare user_id: CreationOptional<number>;
+  declare last_boost_run: number;
 }
 
 export class Ability extends Model<InferAttributes<Ability>, InferCreationAttributes<Ability>> {
@@ -23,7 +29,7 @@ export class Ability extends Model<InferAttributes<Ability>, InferCreationAttrib
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare user_id: number;
-  declare reg_data: Date;
+  declare reg_data: number;
   declare referral_id?: number;
   declare user_name?: string;
   declare first_name?: string;
@@ -53,6 +59,6 @@ export class ActiveEnergyByUser extends Model<
 
 export class LastSession extends Model<InferAttributes<LastSession>, InferCreationAttributes<LastSession>> {
   declare user_id: number;
-  declare last_login: CreationOptional<Date>;
-  declare last_logout: CreationOptional<Date>;
+  declare last_login: CreationOptional<number>;
+  declare last_logout: CreationOptional<number>;
 }

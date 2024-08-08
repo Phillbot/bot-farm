@@ -21,7 +21,7 @@ export async function getMe(req: Request, res: Response): Promise<void> {
       // Если пользователь не найден, создаем его
       const newUser = {
         user_id: Number(user.id),
-        reg_data: new Date(),
+        reg_data: new Date().getTime(),
         user_name: user.userName || '',
         first_name: user.firstName || '',
         user_status: 1, // статус "active"
@@ -52,6 +52,7 @@ export async function getMe(req: Request, res: Response): Promise<void> {
         activeEnergy: userData.activeEnergy,
         lastLogout: userData.lastSession?.last_logout,
         referrals: userData.referrals,
+        boost: userData.boost,
       },
     });
   } catch (error) {
