@@ -8,6 +8,7 @@ import { updateBalance } from './controllers/update-balance.controller';
 import { logout } from './controllers/logout.controller';
 import { updateEnergy } from './controllers/update-energy.controller';
 import { updateBoost } from './controllers/update-boost.controller';
+import { updateAbility } from './controllers/update-ability.controller';
 
 @injectable()
 export class ReactClickerBotRouter {
@@ -25,6 +26,7 @@ export class ReactClickerBotRouter {
     this.router.post('/updateBalance', updateBalance);
     this.router.post('/updateEnergy', updateEnergy);
     this.router.post('/updateBoost', updateBoost);
+    this.router.post('/updateAbility', updateAbility);
     this.router.post('/logout', logout);
   }
 }

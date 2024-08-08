@@ -1,25 +1,9 @@
 import { inject, injectable } from 'inversify';
 import { Transaction } from 'sequelize';
-
 import { Logger } from '@helpers/logger';
-
-import { ActiveEnergyByUser, Boost, LastSession, Referral, User, UserAbility } from './react-clicker-bot.models';
+import { ActiveEnergyByUser, LastSession, User, UserAbility } from './react-clicker-bot.models';
 import { ReactClickerBotSequelize } from './react-clicker-bot.db';
-
-interface ExtendedUser {
-  user_id: number;
-  reg_data: number;
-  referral_id?: number;
-  user_name?: string;
-  first_name?: string;
-  user_status: number;
-  balance: number;
-  abilities?: UserAbility;
-  referrals: Referral[];
-  activeEnergy?: ActiveEnergyByUser;
-  lastSession?: LastSession;
-  boost?: Boost;
-}
+import { AbilityType, ExtendedUser } from './types';
 
 @injectable()
 export class ReactClickerBotPlayerService {
@@ -36,6 +20,7 @@ export class ReactClickerBotPlayerService {
   public async getAllUsers() {
     return this._reactClickerBotSequelize.user.findAll();
   }
+
   public async createUser(
     userData: Required<Pick<User, 'user_id' | 'reg_data' | 'user_name' | 'first_name' | 'user_status' | 'balance'>> &
       Partial<Pick<User, 'referral_id'>>,
@@ -51,7 +36,6 @@ export class ReactClickerBotPlayerService {
       try {
         this._logger.info(`Starting transaction for user creation: ${userData.user_id}, attempt ${attempt + 1}`);
 
-        // Проверяем существование пользователя с блокировкой строки
         const user = await this._reactClickerBotSequelize.user.findOne({
           where: { user_id: userData.user_id },
           transaction,
@@ -64,7 +48,6 @@ export class ReactClickerBotPlayerService {
           return user;
         }
 
-        // Создаем нового пользователя
         const newUser = await this._reactClickerBotSequelize.user.create(userData, { transaction });
         await transaction.commit();
         this._logger.info(`User created successfully: ${userData.user_id}`);
@@ -81,7 +64,6 @@ export class ReactClickerBotPlayerService {
         }
         // @ts-expect-error next line
         if (error.name === 'SequelizeDatabaseError' && error.parent.code === '40001') {
-          // Обрабатываем конфликт сериализации
           this._logger.warn(
             `Serialization conflict detected for user creation: ${userData.user_id}, attempt ${attempt + 1}`,
           );
@@ -98,6 +80,7 @@ export class ReactClickerBotPlayerService {
     this._logger.error(`Failed to create user after ${maxRetries} attempts: ${userData.user_id}`);
     throw new Error(`Failed to create user after ${maxRetries} attempts`);
   }
+
   public async updateUser(user_id: number, userData: Partial<User>) {
     return this._reactClickerBotSequelize.user.update(userData, { where: { user_id } });
   }
@@ -108,10 +91,6 @@ export class ReactClickerBotPlayerService {
 
   public async getUserAbilities(user_id: number) {
     return this._reactClickerBotSequelize.userAbility.findOne({ where: { user_id } });
-  }
-
-  public async setUserAbilities(user_id: number, abilities: Partial<UserAbility>) {
-    return this._reactClickerBotSequelize.userAbility.update(abilities, { where: { user_id } });
   }
 
   public async getUserReferrals(user_id: number) {
@@ -204,5 +183,114 @@ export class ReactClickerBotPlayerService {
 
   public async updateUserBoost(user_id: number, last_boost_run: number) {
     return this._reactClickerBotSequelize.boost.upsert({ user_id, last_boost_run }).catch((e) => this._logger.error(e));
+  }
+
+  public async updateAbility(
+    user_id: number,
+    abilityType: AbilityType,
+  ): Promise<{ balance: number; abilities: UserAbility }> {
+    const transaction = await this._reactClickerBotSequelize.sequelize.transaction();
+
+    try {
+      const user = await this.getUserById(user_id);
+      const abilities = await this.getUserAbilities(user_id);
+
+      if (!user || !abilities) {
+        throw new Error('User or abilities not found');
+      }
+
+      let cost;
+      switch (abilityType) {
+        case AbilityType.ClickCost:
+          cost = this.getClickCostUpgradeCost(abilities.click_coast_level);
+          if (user.balance >= cost && abilities.click_coast_level < 20) {
+            abilities.click_coast_level += 1;
+          }
+          break;
+        case AbilityType.EnergyLimit:
+          cost = this.getEnergyLimitUpgradeCost(abilities.energy_level);
+          if (user.balance >= cost && abilities.energy_level < 10) {
+            abilities.energy_level += 1;
+          }
+          break;
+        case AbilityType.EnergyRegen:
+          cost = this.getEnergyRegenUpgradeCost(abilities.energy_regeniration_level);
+          if (user.balance >= cost && abilities.energy_regeniration_level < 5) {
+            abilities.energy_regeniration_level += 1;
+          }
+          break;
+        default:
+          throw new Error('Unknown ability type');
+      }
+
+      if (user.balance >= cost) {
+        user.balance -= cost;
+        await user.save({ transaction });
+        await this._reactClickerBotSequelize.userAbility.update(
+          {
+            click_coast_level: abilities.click_coast_level,
+            energy_level: abilities.energy_level,
+            energy_regeniration_level: abilities.energy_regeniration_level,
+          },
+          { where: { user_id }, transaction },
+        );
+      }
+
+      await transaction.commit();
+      return { balance: user.balance, abilities };
+    } catch (error) {
+      await transaction.rollback();
+      this._logger.error('Error in updateAbility:', error);
+      throw error;
+    }
+  }
+  private getClickCostUpgradeCost(level: number): number {
+    const costMap = new Map<number, number>([
+      [1, 1000],
+      [2, 2000],
+      [3, 4000],
+      [4, 8000],
+      [5, 12500],
+      [6, 15000],
+      [7, 17500],
+      [8, 20000],
+      [9, 30000],
+      [10, 50000],
+      [11, 100000],
+      [12, 125000],
+      [13, 150000],
+      [14, 175000],
+      [15, 200000],
+      [16, 350000],
+      [17, 500000],
+      [18, 750000],
+      [19, 1000000],
+    ]);
+    return costMap.get(level) || 0;
+  }
+
+  private getEnergyLimitUpgradeCost(level: number): number {
+    const costMap = new Map<number, number>([
+      [1, 5000],
+      [2, 10000],
+      [3, 15000],
+      [4, 20000],
+      [5, 25000],
+      [6, 50000],
+      [7, 75000],
+      [8, 100000],
+      [9, 125000],
+    ]);
+    return costMap.get(level) || 0;
+  }
+
+  private getEnergyRegenUpgradeCost(level: number): number {
+    const costMap = new Map<number, number>([
+      [1, 15000],
+      [2, 20000],
+      [3, 25000],
+      [4, 50000],
+    ]);
+    return costMap.get(level) || 0;
   }
 }

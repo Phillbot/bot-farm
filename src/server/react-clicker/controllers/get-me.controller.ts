@@ -14,25 +14,21 @@ export async function getMe(req: Request, res: Response): Promise<void> {
 
     const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
 
-    // Получаем данные пользователя, если он уже существует
     let userData = await playerService.getUserData(Number(user.id));
 
     if (!userData) {
-      // Если пользователь не найден, создаем его
       const newUser = {
         user_id: Number(user.id),
         reg_data: new Date().getTime(),
         user_name: user.userName || '',
         first_name: user.firstName || '',
-        user_status: 1, // статус "active"
+        user_status: 1,
         referral_id: undefined,
         balance: 0,
       };
 
-      // Создаем пользователя
       await playerService.createUser(newUser);
 
-      // Получаем данные пользователя после создания
       userData = await playerService.getUserData(Number(user.id));
     }
 
