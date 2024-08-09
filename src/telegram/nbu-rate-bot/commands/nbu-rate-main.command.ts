@@ -18,7 +18,7 @@ export class NBURateBotRateMainCommand {
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();
-    const filteredData = data.filter(({ cc }) => mainCurrencies.some((c) => c === cc));
+    const filteredData = data?.filter(({ cc }) => mainCurrencies.some((c) => c === cc));
 
     const table = await this._prettyTableCreator.builder<NBURateType>({
       data: filteredData,
