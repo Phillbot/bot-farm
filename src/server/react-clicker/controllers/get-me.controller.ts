@@ -14,23 +14,8 @@ export async function getMe(req: Request, res: Response): Promise<void> {
 
     const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
 
-    let userData = await playerService.getUserData(Number(user.id));
-
-    if (!userData) {
-      const newUser = {
-        user_id: Number(user.id),
-        reg_data: new Date().getTime(),
-        user_name: user.userName || '',
-        first_name: user.firstName || '',
-        user_status: 1,
-        referral_id: undefined,
-        balance: 0,
-      };
-
-      await playerService.createUser(newUser);
-
-      userData = await playerService.getUserData(Number(user.id));
-    }
+    // Получаем все необходимые данные пользователя из одного запроса
+    const userData = await playerService.getUserData(Number(user.id));
 
     if (!userData) {
       res.status(404).json({ ok: false, error: 'Player data not found' });
