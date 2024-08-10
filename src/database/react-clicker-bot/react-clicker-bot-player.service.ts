@@ -3,7 +3,13 @@ import { Transaction } from 'sequelize';
 import { Logger } from '@helpers/logger';
 import { ActiveEnergyByUser, LastSession, User, UserAbility } from './react-clicker-bot.models';
 import { ReactClickerBotSequelize } from './react-clicker-bot.db';
-import { AbilityType, ExtendedUser } from './types';
+import {
+  AbilityType,
+  ExtendedUser,
+  getClickCostUpgradeCost,
+  getEnergyLimitUpgradeCost,
+  getEnergyRegenUpgradeCost,
+} from './types';
 
 @injectable()
 export class ReactClickerBotPlayerService {
@@ -188,33 +194,35 @@ export class ReactClickerBotPlayerService {
   public async updateAbility(
     user_id: number,
     abilityType: AbilityType,
-  ): Promise<{ balance: number; abilities: UserAbility }> {
+  ): Promise<{ balance: number; abilities: UserAbility; active_energy: number }> {
     const transaction = await this._reactClickerBotSequelize.sequelize.transaction();
 
     try {
       const user = await this.getUserById(user_id);
       const abilities = await this.getUserAbilities(user_id);
+      const activeEnergy = await this.getUserActiveEnergy(user_id);
 
-      if (!user || !abilities) {
-        throw new Error('User or abilities not found');
+      if (!user || !abilities || !activeEnergy) {
+        throw new Error('User, abilities, or active energy not found');
       }
 
       let cost;
+
       switch (abilityType) {
         case AbilityType.ClickCost:
-          cost = this.getClickCostUpgradeCost(abilities.click_coast_level);
+          cost = getClickCostUpgradeCost(abilities.click_coast_level);
           if (user.balance >= cost && abilities.click_coast_level < 20) {
             abilities.click_coast_level += 1;
           }
           break;
         case AbilityType.EnergyLimit:
-          cost = this.getEnergyLimitUpgradeCost(abilities.energy_level);
+          cost = getEnergyLimitUpgradeCost(abilities.energy_level);
           if (user.balance >= cost && abilities.energy_level < 10) {
             abilities.energy_level += 1;
           }
           break;
         case AbilityType.EnergyRegen:
-          cost = this.getEnergyRegenUpgradeCost(abilities.energy_regeniration_level);
+          cost = getEnergyRegenUpgradeCost(abilities.energy_regeniration_level);
           if (user.balance >= cost && abilities.energy_regeniration_level < 5) {
             abilities.energy_regeniration_level += 1;
           }
@@ -226,6 +234,7 @@ export class ReactClickerBotPlayerService {
       if (user.balance >= cost) {
         user.balance -= cost;
         await user.save({ transaction });
+
         await this._reactClickerBotSequelize.userAbility.update(
           {
             click_coast_level: abilities.click_coast_level,
@@ -234,63 +243,25 @@ export class ReactClickerBotPlayerService {
           },
           { where: { user_id }, transaction },
         );
+
+        if (abilityType === AbilityType.EnergyLimit) {
+          await this._reactClickerBotSequelize.activeEnergy.update(
+            { active_energy: abilities.energy_level * 1000 },
+            { where: { user_id }, transaction },
+          );
+        }
       }
 
       await transaction.commit();
-      return { balance: user.balance, abilities };
+      return {
+        balance: user.balance,
+        abilities,
+        active_energy: abilityType === AbilityType.EnergyLimit ? abilities.energy_level * 1000 : -1,
+      };
     } catch (error) {
       await transaction.rollback();
       this._logger.error('Error in updateAbility:', error);
       throw error;
     }
-  }
-  private getClickCostUpgradeCost(level: number): number {
-    const costMap = new Map<number, number>([
-      [1, 1000],
-      [2, 2000],
-      [3, 4000],
-      [4, 8000],
-      [5, 12500],
-      [6, 15000],
-      [7, 17500],
-      [8, 20000],
-      [9, 30000],
-      [10, 50000],
-      [11, 100000],
-      [12, 125000],
-      [13, 150000],
-      [14, 175000],
-      [15, 200000],
-      [16, 350000],
-      [17, 500000],
-      [18, 750000],
-      [19, 1000000],
-    ]);
-    return costMap.get(level) || 0;
-  }
-
-  private getEnergyLimitUpgradeCost(level: number): number {
-    const costMap = new Map<number, number>([
-      [1, 5000],
-      [2, 10000],
-      [3, 15000],
-      [4, 20000],
-      [5, 25000],
-      [6, 50000],
-      [7, 75000],
-      [8, 100000],
-      [9, 125000],
-    ]);
-    return costMap.get(level) || 0;
-  }
-
-  private getEnergyRegenUpgradeCost(level: number): number {
-    const costMap = new Map<number, number>([
-      [1, 15000],
-      [2, 20000],
-      [3, 25000],
-      [4, 50000],
-    ]);
-    return costMap.get(level) || 0;
   }
 }
