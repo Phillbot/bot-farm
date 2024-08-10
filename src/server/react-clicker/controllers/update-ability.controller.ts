@@ -29,7 +29,12 @@ export async function updateAbility(req: Request, res: Response): Promise<void> 
 
     const updatedData = await playerService.updateAbility(userData.user_id, abilityType);
 
-    res.status(200).json({ ok: true, balance: updatedData.balance, abilities: updatedData.abilities });
+    res.status(200).json({
+      ok: true,
+      balance: updatedData.balance,
+      abilities: updatedData.abilities,
+      activeEnergy: updatedData.active_energy,
+    });
   } catch (error) {
     container.get<Logger>(Logger).error('Error in updateAbility:', error);
     res.status(500).json({ error: 'Internal Server Error' });

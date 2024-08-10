@@ -18,8 +18,8 @@ export async function logout(req: Request, res: Response): Promise<void> {
     await playerService.updateBalanceAndLogout(
       Number(user.id),
       balance,
-      lastLogoutTimestamp, // Передаем время в миллисекундах
-      lastLoginTimestamp, // Передаем время в миллисекундах
+      lastLogoutTimestamp,
+      lastLoginTimestamp,
       activeEnergy,
     );
 
