@@ -35,12 +35,6 @@ export class ReactClickerBot extends AbstractBaseBot<ReactClickerBotContext> {
     );
   }
 
-  // private test(): void {
-  //   this._bot.on('', async (ctx: ReactClickerBotContext) => {
-  //     console.log(ctx.message);
-  //   });
-  // }
-
   private static createCommandsMap(
     startCommand: ReactClickerBotStartCommand,
     playCommand: ReactClickerBotPlayCommand,

@@ -100,7 +100,28 @@ export class ReactClickerBotPlayerService {
   }
 
   public async getUserReferrals(user_id: number) {
-    return this._reactClickerBotSequelize.referrals.findAll({ where: { user_id } });
+    try {
+      // Шаг 1: Получаем все записи из таблицы referrals по user_id
+      const referrals = await this._reactClickerBotSequelize.referrals.findAll({
+        where: { user_id },
+      });
+
+      // Шаг 2: Извлекаем все referred_user_id из полученных записей
+      const referredUserIds = referrals.map((referral) => referral.referred_user_id);
+
+      // Шаг 3: Получаем данные пользователей по их ID
+      const referredUsers = await this._reactClickerBotSequelize.user.findAll({
+        where: {
+          user_id: referredUserIds,
+        },
+      });
+
+      // Шаг 4: Возвращаем массив объектов пользователей
+      return referredUsers;
+    } catch (error) {
+      this._logger.error('Error fetching user referrals:', error);
+      throw error;
+    }
   }
 
   public async getUserActiveEnergy(user_id: number) {
@@ -138,7 +159,7 @@ export class ReactClickerBotPlayerService {
           user_status: user.user_status,
           balance: user.balance,
           abilities: abilities ?? undefined,
-          referrals: referrals ? referrals.map((referral) => referral.toJSON()) : [],
+          referrals: referrals ?? [], // Массив User[]
           activeEnergy: activeEnergy ?? undefined,
           lastSession: lastSession ?? undefined,
           boost: boost ?? undefined,
@@ -261,6 +282,18 @@ export class ReactClickerBotPlayerService {
     } catch (error) {
       await transaction.rollback();
       this._logger.error('Error in updateAbility:', error);
+      throw error;
+    }
+  }
+
+  public async updateReferrals(referralId: number, referredUserId: number): Promise<void> {
+    try {
+      await this._reactClickerBotSequelize.referrals.create({
+        user_id: referralId, // Кто пригласил
+        referred_user_id: referredUserId, // Кого пригласили
+      });
+    } catch (error) {
+      this._logger.error('Error updating referrals:', error);
       throw error;
     }
   }

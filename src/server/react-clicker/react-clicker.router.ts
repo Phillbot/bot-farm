@@ -2,13 +2,14 @@ import { Router } from 'express';
 import { inject, injectable } from 'inversify';
 import { ReactClickerBot } from '@telegram/index';
 
-import { getMe } from './controllers/get-me.controller';
 import { authMiddleware } from './middlewares/auth.middleware';
+import { getMe } from './controllers/get-me.controller';
+import { createUser } from './controllers/create-user.controller';
 import { updateBalance } from './controllers/update-balance.controller';
-import { logout } from './controllers/logout.controller';
 import { updateEnergy } from './controllers/update-energy.controller';
 import { updateBoost } from './controllers/update-boost.controller';
 import { updateAbility } from './controllers/update-ability.controller';
+import { logout } from './controllers/logout.controller';
 
 @injectable()
 export class ReactClickerBotRouter {
@@ -23,6 +24,7 @@ export class ReactClickerBotRouter {
     this.router.use(authMiddleware(this._reactClickerBot));
 
     this.router.post('/getMe', getMe);
+    this.router.post('/createUser', createUser);
     this.router.post('/updateBalance', updateBalance);
     this.router.post('/updateEnergy', updateEnergy);
     this.router.post('/updateBoost', updateBoost);

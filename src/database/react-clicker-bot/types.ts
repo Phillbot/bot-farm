@@ -1,4 +1,4 @@
-import { ActiveEnergyByUser, Boost, LastSession, Referral, UserAbility } from './react-clicker-bot.models';
+import { ActiveEnergyByUser, Boost, LastSession, User, UserAbility } from './react-clicker-bot.models';
 
 export type ExtendedUser = {
   user_id: number;
@@ -9,7 +9,7 @@ export type ExtendedUser = {
   user_status: number;
   balance: number;
   abilities?: UserAbility;
-  referrals: Referral[];
+  referrals: User[];
   activeEnergy?: ActiveEnergyByUser;
   lastSession?: LastSession;
   boost?: Boost;
