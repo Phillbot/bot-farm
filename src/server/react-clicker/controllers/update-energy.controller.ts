@@ -1,36 +1,59 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { container } from '@config/inversify.config';
 import { Logger } from '@helpers/logger';
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
+import { BaseController } from '../base-controller';
 
-export async function updateEnergy(req: Request, res: Response): Promise<void> {
-  try {
-    const user = req.user;
-    const { activeEnergy } = req.body;
+@injectable()
+export class UpdateEnergyController extends BaseController {
+  constructor(
+    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
+    @inject(Logger) _logger: Logger,
+  ) {
+    super(_playerService, _logger);
+    this.handle = this.handle.bind(this);
+  }
 
-    if (!user) {
-      res.status(404).json({ ok: false, error: 'User not found' });
-      return;
+  public async handle(req: Request, res: Response): Promise<void> {
+    try {
+      const telegramUser = this.getTelegramUser(req);
+      const activeEnergy = this.getActiveEnergyFromRequest(req);
+
+      if (!telegramUser) {
+        this.respondWithError(res, 404, 'Telegram user not found');
+        return;
+      }
+
+      if (!this.isActiveEnergyValid(activeEnergy)) {
+        this.respondWithError(res, 400, 'Invalid activeEnergy value');
+        return;
+      }
+
+      const userData = await this.getUserData(Number(telegramUser.id));
+
+      if (!userData) {
+        this.respondWithError(res, 404, 'Player data not found');
+        return;
+      }
+
+      await this._playerService.updateUserActiveEnergy(Number(telegramUser.id), { active_energy: activeEnergy });
+
+      this.respondWithSuccess(res, { activeEnergy });
+    } catch (error) {
+      if (error instanceof Error) {
+        this._logger.error(`Error in UpdateEnergyController.handle: ${error.message}`, error);
+      } else {
+        this._logger.error('Unknown error in UpdateEnergyController.handle', error);
+      }
+      this.respondWithError(res, 500, 'Internal Server Error');
     }
+  }
 
-    if (typeof activeEnergy !== 'number') {
-      res.status(400).json({ ok: false, error: 'Invalid activeEnergy value' });
-      return;
-    }
+  private getActiveEnergyFromRequest(req: Request): number {
+    return req.body.activeEnergy;
+  }
 
-    const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
-    const userData = await playerService.getUserData(Number(user.id));
-
-    if (!userData) {
-      res.status(404).json({ ok: false, error: 'Player data not found' });
-      return;
-    }
-
-    await playerService.updateUserActiveEnergy(Number(user.id), { active_energy: activeEnergy });
-
-    res.status(200).json({ ok: true, activeEnergy });
-  } catch (error) {
-    container.get<Logger>(Logger).error('Error in updateEnergy:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  private isActiveEnergyValid(activeEnergy: unknown): activeEnergy is number {
+    return typeof activeEnergy === 'number';
   }
 }

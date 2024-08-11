@@ -1,43 +1,49 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { container } from '@config/inversify.config';
+import { User } from 'grammy/types';
+
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 import { Logger } from '@helpers/logger';
+import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/types';
 
-export async function getMe(req: Request, res: Response): Promise<void> {
-  try {
-    const user = req?.user;
+import { createUserResponseData } from '../utils';
+import { BaseController } from '../base-controller';
 
-    if (!user) {
-      res.status(404).json({ ok: false, error: 'User not found' });
-      return;
+@injectable()
+export class GetMeController extends BaseController {
+  constructor(
+    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
+    @inject(Logger) _logger: Logger,
+  ) {
+    super(_playerService, _logger);
+    this.handle = this.handle.bind(this);
+  }
+
+  public async handle(req: Request, res: Response): Promise<void> {
+    try {
+      const telegramUser = this.getTelegramUser(req);
+
+      if (!telegramUser) {
+        this.respondWithError(res, 404, 'Telegram user not found');
+        return;
+      }
+
+      const userData = await this.getUserData(telegramUser.id);
+
+      if (!userData) {
+        this.respondWithError(res, 404, 'Player data not found');
+        return;
+      }
+
+      const data = await this.createResponseData(telegramUser, userData);
+      this.respondWithSuccess(res, data);
+    } catch (error) {
+      this._logger.error('Error in getMe:', error);
+      this.respondWithError(res, 500, 'Internal Server Error');
     }
+  }
 
-    const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
-
-    // Получаем все необходимые данные пользователя из одного запроса
-    const userData = await playerService.getUserData(Number(user.id));
-
-    if (!userData) {
-      res.status(404).json({ ok: false, error: 'Player data not found' });
-      return;
-    }
-
-    res.status(200).json({
-      ok: true,
-      user: {
-        ...user,
-        balance: userData.balance,
-        status: userData.user_status,
-        referral_id: userData.referral_id,
-        abilities: userData.abilities,
-        activeEnergy: userData.activeEnergy,
-        lastLogout: userData.lastSession?.last_logout,
-        referrals: userData.referrals,
-        boost: userData.boost,
-      },
-    });
-  } catch (error) {
-    container.get<Logger>(Logger).error('Error in getMe:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  private createResponseData(telegramUser: User, userData: ExtendedUser): Promise<UserResponseData> {
+    return createUserResponseData(telegramUser, userData);
   }
 }

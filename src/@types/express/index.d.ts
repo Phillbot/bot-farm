@@ -1,9 +1,9 @@
-import { User } from '@server/react-clicker/middlewares/auth.middleware';
+import { User } from 'grammy/types';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      telegramReactClickerUser?: User;
     }
   }
 }
