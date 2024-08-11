@@ -1,77 +1,87 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { container } from '@config/inversify.config';
+import { User } from 'grammy/types';
+
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 import { Logger } from '@helpers/logger';
+import { ExtendedUser, UserResponseData, UserStatus } from '@database/react-clicker-bot/types';
 
-export async function createUser(req: Request, res: Response): Promise<void> {
-  try {
-    const { referralId } = req?.body;
-    const { user } = req;
+import { createUserResponseData } from '../utils';
+import { BaseController } from '../base-controller';
 
-    if (!user) {
-      res.status(404).json({ ok: false, error: 'User not found' });
-      return;
-    }
+@injectable()
+export class CreateUserController extends BaseController {
+  constructor(
+    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
+    @inject(Logger) _logger: Logger,
+  ) {
+    super(_playerService, _logger);
+    this.handle = this.handle.bind(this);
+  }
 
-    const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
+  public async handle(req: Request, res: Response): Promise<void> {
+    try {
+      const telegramUser = this.getTelegramUser(req);
 
-    let validReferralId = undefined;
-    if (referralId) {
-      const referralUser = await playerService.getUserById(Number(referralId));
-      if (referralUser && Number(referralId) !== Number(user.id)) {
-        validReferralId = Number(referralId);
-      } else {
-        container.get<Logger>(Logger).warn(`Referral ID ${referralId} not found in the database.`);
+      if (!telegramUser) {
+        this.respondWithError(res, 404, 'Telegram user not found');
+        return;
       }
+
+      const validReferralId = await this.validateReferralId(telegramUser.id, req.body.referralId);
+      const newUser = this.createNewUserObject(telegramUser, validReferralId);
+
+      const createdUser = await this._playerService.createUser(newUser);
+
+      if (!createdUser) {
+        this.respondWithError(res, 500, 'Failed to create user');
+        return;
+      }
+
+      if (validReferralId) {
+        await this._playerService.updateReferrals(validReferralId, Number(telegramUser.id));
+      }
+
+      const userData = await this._playerService.getUserData(Number(telegramUser.id));
+
+      if (!userData) {
+        this.respondWithError(res, 500, 'Failed to retrieve user data after creation');
+        return;
+      }
+
+      const data = await this.createResponseData(telegramUser, userData);
+      this.respondWithSuccess(res, data);
+    } catch (error) {
+      this._logger.error('Error in createUser:', error);
+      this.respondWithError(res, 500, 'Internal Server Error');
+    }
+  }
+
+  private async validateReferralId(userId: number, referralId?: string): Promise<number | undefined> {
+    if (!referralId) return undefined;
+
+    const referralUser = await this._playerService.getUserById(Number(referralId));
+    if (referralUser && Number(referralId) !== userId) {
+      return Number(referralId);
     }
 
-    const newUser = {
-      user_id: Number(user.id),
-      reg_data: new Date().getTime(),
-      user_name: user.userName || '',
-      first_name: user.firstName || '',
-      user_status: 1,
+    this._logger.warn(`Referral ID ${referralId} not found in the database.`);
+    return undefined;
+  }
+
+  private createNewUserObject(telegramUser: User, validReferralId?: number) {
+    return {
+      user_id: Number(telegramUser.id),
+      reg_data: Date.now(),
+      user_name: telegramUser.username || '',
+      first_name: telegramUser.first_name || '',
+      user_status: UserStatus.ACTIVE,
       referral_id: validReferralId,
       balance: 0,
     };
+  }
 
-    const createdUser = await playerService.createUser(newUser);
-
-    if (!createdUser) {
-      res.status(500).json({ ok: false, error: 'Failed to create user' });
-      return;
-    }
-
-    if (validReferralId) {
-      await playerService.updateReferrals(validReferralId, Number(user.id));
-    }
-
-    // Загружаем полные данные пользователя после создания
-    const userData = await playerService.getUserData(Number(user.id));
-
-    if (!userData) {
-      res.status(500).json({ ok: false, error: 'Failed to retrieve user data after creation' });
-      return;
-    }
-
-    // Возвращаем данные созданного пользователя
-    res.status(201).json({
-      ok: true,
-      message: 'User created successfully',
-      user: {
-        ...user,
-        balance: userData.balance,
-        status: userData.user_status,
-        referral_id: userData.referral_id,
-        abilities: userData.abilities,
-        activeEnergy: userData.activeEnergy,
-        lastLogout: userData.lastSession?.last_logout,
-        referrals: userData.referrals,
-        boost: userData.boost,
-      },
-    });
-  } catch (error) {
-    container.get<Logger>(Logger).error('Error in createUser:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  private createResponseData(telegramUser: User, userData: ExtendedUser): Promise<UserResponseData> {
+    return createUserResponseData(telegramUser, userData);
   }
 }

@@ -1,4 +1,11 @@
+import { mapBot } from '@server/react-clicker/mappers/bot.mapper';
 import { ActiveEnergyByUser, Boost, LastSession, User, UserAbility } from './react-clicker-bot.models';
+
+export enum UserStatus {
+  ACTIVE = 1,
+  BANNED = 2,
+  BLOCKED = 3,
+}
 
 export type ExtendedUser = {
   user_id: number;
@@ -119,3 +126,60 @@ export function getEnergyRegenUpgradeCost(level: number): number {
   ]);
   return costMap.get(level) || 0;
 }
+
+export type AbilitiesMapping = {
+  clickCoastLevel: number;
+  energyLevel: number;
+  energyRegenirationLevel: number;
+};
+
+export type ActiveEnergyMapping = {
+  availablePoints: number;
+};
+
+export type BoostMapping = {
+  lastBoostRun: number;
+};
+
+export type BotMapping = {
+  canConnectToBusiness: boolean | undefined;
+  canJoinGroups: boolean;
+  canReadAllGroupMessages: boolean;
+  firstName: string;
+  id: number;
+  isBot: boolean;
+  supportsInlineQueries: boolean;
+  username: string;
+};
+
+export type UserMapping = {
+  userId: number;
+  regData: number;
+  userName: string | null;
+  firstName: string | null;
+  userStatus: number;
+  balance: number;
+  referralId: number | null;
+};
+
+export type UserResponseData = {
+  ok: boolean;
+  bot: ReturnType<typeof mapBot>;
+  user: {
+    id: number;
+    isBot: boolean;
+    firstName: string;
+    lastName?: string;
+    userName?: string;
+    languageCode?: string;
+    isPremium?: boolean;
+    balance: number;
+    status: number;
+    referralId?: number;
+    abilities: AbilitiesMapping | undefined;
+    activeEnergy: ActiveEnergyMapping | undefined;
+    lastLogout?: number;
+    referrals: UserMapping[];
+    boost: BoostMapping | undefined;
+  };
+};

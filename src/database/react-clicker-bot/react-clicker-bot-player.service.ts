@@ -159,7 +159,7 @@ export class ReactClickerBotPlayerService {
           user_status: user.user_status,
           balance: user.balance,
           abilities: abilities ?? undefined,
-          referrals: referrals ?? [], // Массив User[]
+          referrals: referrals ?? [],
           activeEnergy: activeEnergy ?? undefined,
           lastSession: lastSession ?? undefined,
           boost: boost ?? undefined,

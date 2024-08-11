@@ -1,29 +1,53 @@
+import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { container } from '@config/inversify.config';
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 import { Logger } from '@helpers/logger';
 
-export async function updateBoost(req: Request, res: Response): Promise<void> {
-  try {
-    const user = req.user;
-    const { lastBoostRun } = req.body;
+import { BaseController } from '../base-controller';
 
-    if (!user) {
-      res.status(404).json({ ok: false, error: 'User not found' });
-      return;
+@injectable()
+export class UpdateBoostController extends BaseController {
+  constructor(
+    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
+    @inject(Logger) _logger: Logger,
+  ) {
+    super(_playerService, _logger);
+    this.handle = this.handle.bind(this);
+  }
+
+  public async handle(req: Request, res: Response): Promise<void> {
+    try {
+      const telegramUser = this.getTelegramUser(req);
+      const lastBoostRun = this.getLastBoostRunFromRequest(req);
+
+      if (!telegramUser) {
+        this.respondWithError(res, 404, 'Telegram user not found');
+        return;
+      }
+
+      if (!this.isLastBoostRunValid(lastBoostRun)) {
+        this.respondWithError(res, 400, 'Invalid lastBoostRun value');
+        return;
+      }
+
+      await this._playerService.updateUserBoost(Number(telegramUser.id), lastBoostRun);
+
+      this.respondWithSuccess(res, { message: 'Boost updated successfully' });
+    } catch (error) {
+      if (error instanceof Error) {
+        this._logger.error(`Error in UpdateBoostController.handle: ${error.message}`, error);
+      } else {
+        this._logger.error('Unknown error in UpdateBoostController.handle', error);
+      }
+      this.respondWithError(res, 500, 'Internal Server Error');
     }
+  }
 
-    if (typeof lastBoostRun !== 'number') {
-      res.status(400).json({ ok: false, error: 'Invalid lastBoostRun value' });
-      return;
-    }
+  private getLastBoostRunFromRequest(req: Request): number {
+    return req.body.lastBoostRun;
+  }
 
-    const playerService = container.get<ReactClickerBotPlayerService>(ReactClickerBotPlayerService);
-    await playerService.updateUserBoost(Number(user.id), lastBoostRun);
-
-    res.status(200).json({ ok: true, message: 'Boost updated successfully' });
-  } catch (error) {
-    container.get<Logger>(Logger).error('Error in updateBoost:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  private isLastBoostRunValid(lastBoostRun: unknown): lastBoostRun is number {
+    return typeof lastBoostRun === 'number';
   }
 }
