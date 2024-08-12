@@ -10,6 +10,7 @@ import { UpdateEnergyController } from './controllers/update-energy.controller';
 import { UpdateBoostController } from './controllers/update-boost.controller';
 import { UpdateAbilityController } from './controllers/update-ability.controller';
 import { LogoutController } from './controllers/logout.controller';
+import { ReferralRewardController } from './controllers/referral-reward.controller';
 
 enum Routes {
   GET_ME = '/get-me',
@@ -18,6 +19,7 @@ enum Routes {
   UPDATE_ENERGY = '/update-energy',
   UPDATE_BOOST = '/update-boost',
   UPDATE_ABILITY = '/update-ability',
+  REFERRAL_CLAIM_REWARD = '/referral-claim-reward',
   LOGOUT = '/logout',
 }
 
@@ -37,6 +39,7 @@ export class ReactClickerBotRouter {
     @inject(UpdateEnergyController) private readonly _updateEnergyController: UpdateEnergyController,
     @inject(UpdateBoostController) private readonly _updateBoostController: UpdateBoostController,
     @inject(UpdateAbilityController) private readonly _updateAbilityController: UpdateAbilityController,
+    @inject(ReferralRewardController) private readonly _referralRewardController: ReferralRewardController,
     @inject(LogoutController) private readonly _logoutController: LogoutController,
     @inject(Logger) private readonly _logger: Logger,
   ) {
@@ -55,6 +58,7 @@ export class ReactClickerBotRouter {
       [Routes.UPDATE_ENERGY]: this._updateEnergyController.handle,
       [Routes.UPDATE_BOOST]: this._updateBoostController.handle,
       [Routes.UPDATE_ABILITY]: this._updateAbilityController.handle,
+      [Routes.REFERRAL_CLAIM_REWARD]: this._referralRewardController.handle,
       [Routes.LOGOUT]: this._logoutController.handle,
     };
 

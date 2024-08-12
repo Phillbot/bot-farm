@@ -9,6 +9,7 @@ import { UpdateBalanceController } from './controllers/update-balance.controller
 import { UpdateEnergyController } from './controllers/update-energy.controller';
 import { UpdateBoostController } from './controllers/update-boost.controller';
 import { BaseController } from './base-controller';
+import { ReferralRewardController } from './controllers/referral-reward.controller';
 
 // TODO: Create common serve module
 
@@ -25,5 +26,6 @@ export const reactClickerServerModule = new ContainerModule((bind: interfaces.Bi
   bind<UpdateEnergyController>(UpdateEnergyController).toSelf();
   bind<UpdateBoostController>(UpdateBoostController).toSelf();
   bind<UpdateAbilityController>(UpdateAbilityController).toSelf();
+  bind<ReferralRewardController>(ReferralRewardController).toSelf();
   bind<LogoutController>(LogoutController).toSelf();
 });

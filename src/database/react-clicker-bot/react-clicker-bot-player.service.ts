@@ -6,6 +6,7 @@ import { ReactClickerBotSequelize } from './react-clicker-bot.db';
 import {
   AbilityType,
   ExtendedUser,
+  ReferralUser,
   getClickCostUpgradeCost,
   getEnergyLimitUpgradeCost,
   getEnergyRegenUpgradeCost,
@@ -104,6 +105,7 @@ export class ReactClickerBotPlayerService {
       // Шаг 1: Получаем все записи из таблицы referrals по user_id
       const referrals = await this._reactClickerBotSequelize.referrals.findAll({
         where: { user_id },
+        attributes: ['referred_user_id', 'reward_claim'], // Извлекаем также поле reward_claim
       });
 
       // Шаг 2: Извлекаем все referred_user_id из полученных записей
@@ -116,8 +118,17 @@ export class ReactClickerBotPlayerService {
         },
       });
 
-      // Шаг 4: Возвращаем массив объектов пользователей
-      return referredUsers;
+      // Шаг 4: Создаем массив объектов с информацией о пользователе и награде
+      const result = referredUsers.map((user) => {
+        const referral = referrals.find((ref) => ref.referred_user_id === user.user_id);
+        return {
+          ...user.toJSON(),
+          reward_claim: referral?.reward_claim, // Добавляем информацию о получении награды
+        };
+      });
+
+      // Шаг 5: Возвращаем массив объектов пользователей с дополнительной информацией
+      return result;
     } catch (error) {
       this._logger.error('Error fetching user referrals:', error);
       throw error;
@@ -291,9 +302,64 @@ export class ReactClickerBotPlayerService {
       await this._reactClickerBotSequelize.referrals.create({
         user_id: referralId, // Кто пригласил
         referred_user_id: referredUserId, // Кого пригласили
+        reward_claim: false,
       });
     } catch (error) {
       this._logger.error('Error updating referrals:', error);
+      throw error;
+    }
+  }
+  public async claimReferralReward(
+    user_id: number,
+    referred_user_id: number,
+  ): Promise<{ balance: number; referrals: ReferralUser[] }> {
+    const transaction = await this._reactClickerBotSequelize.sequelize.transaction();
+
+    try {
+      // Шаг 1: Найти запись о реферале
+      const referral = await this._reactClickerBotSequelize.referrals.findOne({
+        where: { user_id, referred_user_id },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (!referral) {
+        throw new Error('Referral not found');
+      }
+
+      // Шаг 2: Проверить, была ли награда уже получена
+      if (referral.reward_claim) {
+        throw new Error('Reward already claimed');
+      }
+
+      // Шаг 3: Обновить статус награды на true
+      referral.reward_claim = true;
+      await referral.save({ transaction });
+
+      // Шаг 4: Начислить +1000 баллов пользователю, который пригласил
+      const user = await this._reactClickerBotSequelize.user.findOne({
+        where: { user_id },
+        transaction,
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      user.balance += 1000;
+      await user.save({ transaction });
+
+      // Шаг 5: Закоммитить транзакцию
+      await transaction.commit();
+
+      // Шаг 6: Получить обновленный список всех рефералов
+      const updatedReferrals = await this.getUserReferrals(user_id);
+
+      // Возвращаем новый баланс и обновленный список рефералов
+      return { balance: user.balance, referrals: updatedReferrals };
+    } catch (error) {
+      await transaction.rollback();
+      this._logger.error('Error claiming referral reward:', error);
       throw error;
     }
   }

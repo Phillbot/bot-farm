@@ -120,6 +120,11 @@ export function initializeModels(sequelize: Sequelize): void {
         },
         primaryKey: true,
       },
+      reward_claim: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       schema: REACT_CLICKER_PLAYERS_DB_CONNECTION_DATA.SCHEMA,
