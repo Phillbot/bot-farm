@@ -11,7 +11,7 @@ export class ReactClickerBotStartCommand {
   public async withCtx(ctx: CommandContext<ReactClickerBotContext>): Promise<void> {
     await this._telegramUtils.sendReply({
       ctx,
-      text: ctx.t('nbu-exchange-bot-start', { firstName: ctx.from?.first_name ?? '' }),
+      text: ctx.t('react-clicker-bot-start-command', { firstName: ctx.from?.first_name ?? '' }),
     });
   }
 }
