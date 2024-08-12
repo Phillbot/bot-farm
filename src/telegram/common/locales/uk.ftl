@@ -28,3 +28,8 @@ nbu-exchange-bot-weekly-chart = Тижневий графік
 
 react-clicker-bot-start-command-descriptor = Привіт, друже!
 react-clicker-bot-play-command-descriptor  = Грати в гру!
+
+react-clicker-bot-start-command = Привіт, це бета гри Реакт-клікер, тестуй все що хочеш!
+react-clicker-bot-play-command = Відкривай гру та насолоджуйся!
+
+react-clicker-bot-play-open-button = Вперед!

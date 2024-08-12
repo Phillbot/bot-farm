@@ -28,3 +28,8 @@ nbu-exchange-bot-weekly-chart = Weekly chart
 
 react-clicker-bot-start-command-descriptor = Welcome, friend!
 react-clicker-bot-play-command-descriptor  = Play the Game!
+
+react-clicker-bot-start-command = Hi, its beta react clicker Bot! Test it all!
+react-clicker-bot-play-command = Open and enjoy Game!
+
+react-clicker-bot-play-open-button = Enjoy!

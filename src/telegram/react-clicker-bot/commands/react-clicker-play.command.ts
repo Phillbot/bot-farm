@@ -15,11 +15,11 @@ export class ReactClickerBotPlayCommand {
   public async withCtx(ctx: CommandContext<ReactClickerBotContext>): Promise<void> {
     await this._telegramUtils.sendReply({
       ctx,
-      text: ctx.t('nbu-exchange-bot-start', { firstName: ctx.from?.first_name ?? '' }),
+      text: ctx.t('react-clicker-bot-play-command', { firstName: ctx.from?.first_name ?? '' }),
       reply_markup: this._telegramUtils.inlineKeyboardBuilder([
         {
           type: 'web_app',
-          text: ctx.t('nbu-exchange-bot-exchange-rates-url-text'),
+          text: ctx.t('react-clicker-bot-play-open-button'),
           url: this._reactClickerAppGameUrl,
         },
       ]),
