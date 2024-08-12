@@ -40,6 +40,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
 export class Referral extends Model<InferAttributes<Referral>, InferCreationAttributes<Referral>> {
   declare user_id: number;
   declare referred_user_id: number;
+  declare reward_claim: boolean;
 }
 
 export class UserAbility extends Model<InferAttributes<UserAbility>, InferCreationAttributes<UserAbility>> {

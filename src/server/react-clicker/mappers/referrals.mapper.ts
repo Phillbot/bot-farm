@@ -1,7 +1,6 @@
-import { User } from '@database/react-clicker-bot/react-clicker-bot.models';
-import { UserMapping } from '@database/react-clicker-bot/types';
+import { ReferralUser, ReferralUserMapping } from '@database/react-clicker-bot/types';
 
-export function mapReferralUser(referrals: User[]): UserMapping[] {
+export function mapReferralUser(referrals: ReferralUser[]): ReferralUserMapping[] {
   return referrals.map((referral) => ({
     userId: referral.user_id,
     regData: referral.reg_data,
@@ -10,5 +9,6 @@ export function mapReferralUser(referrals: User[]): UserMapping[] {
     userStatus: referral.user_status,
     balance: referral.balance as number,
     referralId: referral.referral_id ?? null,
+    rewardClaim: referral.reward_claim,
   }));
 }

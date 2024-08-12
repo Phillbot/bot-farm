@@ -1,11 +1,24 @@
 import { mapBot } from '@server/react-clicker/mappers/bot.mapper';
-import { ActiveEnergyByUser, Boost, LastSession, User, UserAbility } from './react-clicker-bot.models';
+import { CreationOptional } from 'sequelize';
+
+import { ActiveEnergyByUser, Boost, LastSession, UserAbility } from './react-clicker-bot.models';
 
 export enum UserStatus {
   ACTIVE = 1,
   BANNED = 2,
   BLOCKED = 3,
 }
+
+export type ReferralUser = {
+  reward_claim: boolean | undefined;
+  user_id: number;
+  reg_data: number;
+  referral_id?: number | undefined;
+  user_name?: string | undefined;
+  first_name?: string | undefined;
+  user_status: number;
+  balance: CreationOptional<number>;
+};
 
 export type ExtendedUser = {
   user_id: number;
@@ -16,7 +29,7 @@ export type ExtendedUser = {
   user_status: number;
   balance: number;
   abilities?: UserAbility;
-  referrals: User[];
+  referrals: ReferralUser[];
   activeEnergy?: ActiveEnergyByUser;
   lastSession?: LastSession;
   boost?: Boost;
@@ -160,6 +173,17 @@ export type UserMapping = {
   userStatus: number;
   balance: number;
   referralId: number | null;
+};
+
+export type ReferralUserMapping = {
+  userId: number;
+  regData: number;
+  userName: string | null;
+  firstName: string | null;
+  userStatus: number;
+  balance: number;
+  referralId: number | null;
+  rewardClaim: boolean | undefined;
 };
 
 export type UserResponseData = {
