@@ -243,19 +243,28 @@ export class ReactClickerBotPlayerService {
       switch (abilityType) {
         case AbilityType.ClickCost:
           cost = getClickCostUpgradeCost(abilities.click_coast_level);
-          if (user.balance >= cost && abilities.click_coast_level < 20) {
+          if (user.balance < cost) {
+            throw new Error('Insufficient balance');
+          }
+          if (abilities.click_coast_level < 20) {
             abilities.click_coast_level += 1;
           }
           break;
         case AbilityType.EnergyLimit:
           cost = getEnergyLimitUpgradeCost(abilities.energy_level);
-          if (user.balance >= cost && abilities.energy_level < 10) {
+          if (user.balance < cost) {
+            throw new Error('Insufficient balance');
+          }
+          if (abilities.energy_level < 10) {
             abilities.energy_level += 1;
           }
           break;
         case AbilityType.EnergyRegen:
           cost = getEnergyRegenUpgradeCost(abilities.energy_regeniration_level);
-          if (user.balance >= cost && abilities.energy_regeniration_level < 5) {
+          if (user.balance < cost) {
+            throw new Error('Insufficient balance');
+          }
+          if (abilities.energy_regeniration_level < 5) {
             abilities.energy_regeniration_level += 1;
           }
           break;
@@ -263,25 +272,23 @@ export class ReactClickerBotPlayerService {
           throw new Error('Unknown ability type');
       }
 
-      if (user.balance >= cost) {
-        user.balance -= cost;
-        await user.save({ transaction });
+      user.balance -= cost;
+      await user.save({ transaction });
 
-        await this._reactClickerBotSequelize.userAbility.update(
-          {
-            click_coast_level: abilities.click_coast_level,
-            energy_level: abilities.energy_level,
-            energy_regeniration_level: abilities.energy_regeniration_level,
-          },
+      await this._reactClickerBotSequelize.userAbility.update(
+        {
+          click_coast_level: abilities.click_coast_level,
+          energy_level: abilities.energy_level,
+          energy_regeniration_level: abilities.energy_regeniration_level,
+        },
+        { where: { user_id }, transaction },
+      );
+
+      if (abilityType === AbilityType.EnergyLimit) {
+        await this._reactClickerBotSequelize.activeEnergy.update(
+          { active_energy: abilities.energy_level * 1000 },
           { where: { user_id }, transaction },
         );
-
-        if (abilityType === AbilityType.EnergyLimit) {
-          await this._reactClickerBotSequelize.activeEnergy.update(
-            { active_energy: abilities.energy_level * 1000 },
-            { where: { user_id }, transaction },
-          );
-        }
       }
 
       await transaction.commit();
@@ -292,11 +299,17 @@ export class ReactClickerBotPlayerService {
       };
     } catch (error) {
       await transaction.rollback();
+
+      // Check for insufficient balance error using type assertion
+      if (error instanceof Error && error.message === 'Insufficient balance') {
+        this._logger.warn(`User ${user_id} has insufficient balance for ${abilityType}`);
+        throw new Error('INSUFFICIENT_BALANCE');
+      }
+
       this._logger.error('Error in updateAbility:', error);
       throw error;
     }
   }
-
   public async updateReferrals(referralId: number, referredUserId: number): Promise<void> {
     try {
       await this._reactClickerBotSequelize.referrals.create({
