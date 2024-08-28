@@ -10,6 +10,7 @@ export class NBUCurrencyBotUserService {
     private readonly _nbuRateBotPostgresqlSequelize: NBURateBotPostgresqlSequelize,
     @inject(Logger) private readonly _logger: Logger,
   ) {}
+
   public async getUserById({ user_id }: Pick<NBURateBotUserType, 'user_id'>) {
     return this._nbuRateBotPostgresqlSequelize.user.findOne({ where: { user_id } }).catch((e) => this._logger.error(e));
   }
