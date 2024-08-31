@@ -23,7 +23,7 @@ export async function createUserResponseData(telegramUser: User, userData: Exten
       referralId: userData.referral_id,
       lastLogout: userData.lastSession?.last_logout,
       abilities: mapAbilitiesToCamelCase(userData.abilities),
-      activeEnergy: mapActiveEnergy(userData.activeEnergy),
+      activeEnergy: mapActiveEnergy(userData.activeEnergy, userData.lastSession, userData.abilities),
       referrals: mapReferralUser(userData.referrals),
       boost: mapBoost(userData.boost),
     },

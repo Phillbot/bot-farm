@@ -322,6 +322,16 @@ export class ReactClickerBotPlayerService {
       throw error;
     }
   }
+
+  public async updateLastLogin(user_id: number, last_login: number): Promise<void> {
+    try {
+      await this._reactClickerBotSequelize.lastSession.update({ last_login }, { where: { user_id } });
+    } catch (error) {
+      this._logger.error('Error updating last login:', error);
+      throw error;
+    }
+  }
+
   public async claimReferralReward(
     user_id: number,
     referred_user_id: number,

@@ -8,6 +8,7 @@ import { LogoutController } from './controllers/logout.controller';
 import { UpdateBalanceController } from './controllers/update-balance.controller';
 import { UpdateEnergyController } from './controllers/update-energy.controller';
 import { UpdateBoostController } from './controllers/update-boost.controller';
+import { UpdateLastLoginController } from './controllers/update-last-login.controller';
 import { BaseController } from './base-controller';
 import { ReferralRewardController } from './controllers/referral-reward.controller';
 
@@ -26,6 +27,7 @@ export const reactClickerServerModule = new ContainerModule((bind: interfaces.Bi
   bind<UpdateEnergyController>(UpdateEnergyController).toSelf();
   bind<UpdateBoostController>(UpdateBoostController).toSelf();
   bind<UpdateAbilityController>(UpdateAbilityController).toSelf();
+  bind<UpdateLastLoginController>(UpdateLastLoginController).toSelf();
   bind<ReferralRewardController>(ReferralRewardController).toSelf();
   bind<LogoutController>(LogoutController).toSelf();
 });
