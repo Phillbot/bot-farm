@@ -1,5 +1,6 @@
 import { ContainerModule, interfaces } from 'inversify';
 import { ReactClickerBotRouter } from './react-clicker.router';
+import { TokenValidateMiddleware } from './middlewares/token-validate.middleware';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { GetMeController } from './controllers/get-me.controller';
 import { CreateUserController } from './controllers/create-user.controller';
@@ -11,12 +12,15 @@ import { UpdateBoostController } from './controllers/update-boost.controller';
 import { UpdateLastLoginController } from './controllers/update-last-login.controller';
 import { BaseController } from './base-controller';
 import { ReferralRewardController } from './controllers/referral-reward.controller';
+import { SALT } from './symbols';
 
 // TODO: Create common serve module
 
 export const reactClickerServerModule = new ContainerModule((bind: interfaces.Bind) => {
+  bind<string>(SALT.$).toConstantValue(process.env.REACT_CLICKER_APP_SALT!);
   bind<ReactClickerBotRouter>(ReactClickerBotRouter).toSelf();
 
+  bind<TokenValidateMiddleware>(TokenValidateMiddleware).toSelf();
   bind<AuthMiddleware>(AuthMiddleware).toSelf();
 
   bind<BaseController>(BaseController).toSelf();

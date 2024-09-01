@@ -3,14 +3,17 @@ import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/type
 import { ReactClickerBot } from '@telegram/index';
 import { User } from 'grammy/types';
 
-import { mapBot } from './mappers/bot.mapper';
-import { mapAbilitiesToCamelCase } from './mappers/abilities.mapper';
-import { mapActiveEnergy } from './mappers/active-energy.mapper';
-import { mapReferralUser } from './mappers/referrals.mapper';
-import { mapBoost } from './mappers/boost.mapper';
-import { mapTelegramUser } from './mappers/telegram-user.mapper';
+import { mapBot } from './bot.mapper';
+import { mapAbilitiesToCamelCase } from './abilities.mapper';
+import { mapActiveEnergy } from './active-energy.mapper';
+import { mapReferralUser } from './referrals.mapper';
+import { mapBoost } from './boost.mapper';
+import { mapTelegramUser } from './telegram-user.mapper';
 
-export async function createUserResponseData(telegramUser: User, userData: ExtendedUser): Promise<UserResponseData> {
+export async function createUserResponseDataMapper(
+  telegramUser: User,
+  userData: ExtendedUser,
+): Promise<UserResponseData> {
   const reactClickerBot = container.get<ReactClickerBot>(ReactClickerBot);
 
   return {
