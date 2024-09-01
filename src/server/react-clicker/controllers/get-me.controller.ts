@@ -6,8 +6,8 @@ import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-
 import { Logger } from '@helpers/logger';
 import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/types';
 
-import { createUserResponseData } from '../utils';
 import { BaseController } from '../base-controller';
+import { createUserResponseDataMapper } from '../mappers/create-user.mapper';
 
 @injectable()
 export class GetMeController extends BaseController {
@@ -44,6 +44,6 @@ export class GetMeController extends BaseController {
   }
 
   private createResponseData(telegramUser: User, userData: ExtendedUser): Promise<UserResponseData> {
-    return createUserResponseData(telegramUser, userData);
+    return createUserResponseDataMapper(telegramUser, userData);
   }
 }

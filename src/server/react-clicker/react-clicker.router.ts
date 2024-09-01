@@ -2,6 +2,7 @@ import { Request, RequestHandler, Response, Router } from 'express';
 import { inject, injectable } from 'inversify';
 
 import { Logger } from '@helpers/logger';
+import { TokenValidateMiddleware } from './middlewares/token-validate.middleware';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { GetMeController } from './controllers/get-me.controller';
 import { CreateUserController } from './controllers/create-user.controller';
@@ -34,6 +35,7 @@ export class ReactClickerBotRouter {
   public router: Router;
 
   constructor(
+    @inject(TokenValidateMiddleware) private readonly _tokenValidateMiddleware: TokenValidateMiddleware,
     @inject(AuthMiddleware) private readonly _authMiddleware: AuthMiddleware,
     @inject(GetMeController) private readonly _getMeController: GetMeController,
     @inject(CreateUserController) private readonly _createUserController: CreateUserController,
@@ -52,6 +54,7 @@ export class ReactClickerBotRouter {
   }
 
   private initializeRoutes(): void {
+    this.router.use(this._tokenValidateMiddleware.handle);
     this.router.use(this._authMiddleware.handle);
 
     const routeMap: RouteMap = {

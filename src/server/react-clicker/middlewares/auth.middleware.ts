@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { User } from 'grammy/types';
 
 import { ReactClickerBot } from '@telegram/index';
-import { ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
+import { ReactClickerAppGameUrl, ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
 import { Logger } from '@helpers/logger';
 
 @injectable()
@@ -12,6 +12,7 @@ export class AuthMiddleware {
     @inject(ReactClickerBot) private readonly _bot: ReactClickerBot,
     @inject(Logger) private readonly _logger: Logger,
     @inject(ReactClickerSessionDuration.$) private readonly _sessionDuration: string,
+    @inject(ReactClickerAppGameUrl.$) private readonly _appGameUrl: string,
   ) {
     this.handle = this.handle.bind(this);
   }
