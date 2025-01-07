@@ -3,6 +3,10 @@
   "version": "0.8.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "18",
+    "npm": ">=9"
+  },
   "scripts": {
     "prestart": "npm run build",
     "start": "node dist/index.js",
