@@ -1,9 +1,8 @@
 import { inject, injectable } from 'inversify';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
-import { ENV } from '@config/symbols';
-import { Logger } from '@helpers/logger';
-import { ENV_TYPE } from '@helpers/types/env';
+import { LOG_LEVEL, Logger } from '@helpers/logger';
+import { LogLevel } from '@config/symbols';
 import { NbuBotPostgresConnectUrl } from '@database/symbols';
 
 enum NBU_RATE_BOT_CONNECTION_DATA {
@@ -25,7 +24,7 @@ export class NBURateBotUser extends Model<InferAttributes<NBURateBotUser>, Infer
 @injectable()
 export class NBURateBotPostgresqlSequelize {
   private readonly _connect = new Sequelize(this._nbuBotPostgresConnectUrl, {
-    logging: this._env === ENV_TYPE.DEV,
+    logging: (msg) => this._logLevel !== LOG_LEVEL.NONE && this._logger.info(`[NBURateBotPostgresqlSequelize]: ${msg}`),
     define: {
       hooks: {},
     },
@@ -61,10 +60,10 @@ export class NBURateBotPostgresqlSequelize {
   );
 
   constructor(
-    @inject(ENV.$)
-    private readonly _env: string,
     @inject(NbuBotPostgresConnectUrl.$)
     private readonly _nbuBotPostgresConnectUrl: string,
+    @inject(LogLevel.$)
+    private readonly _logLevel: string,
     private readonly _logger: Logger,
   ) {
     // test connection
