@@ -10,10 +10,11 @@ import { NbuBotWebLink } from '../symbols';
 @injectable()
 export class NBURateBotRateMainCommand {
   constructor(
-    @inject(NbuBotWebLink.$) private readonly _nbuBotWebLink: string,
-    @inject(NBURateBotUtils) private readonly _nbuRateBotUtils: NBURateBotUtils,
-    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
-    @inject(PrettyTableCreator) private readonly _prettyTableCreator: PrettyTableCreator,
+    @inject(NbuBotWebLink.$)
+    private readonly _nbuBotWebLink: string,
+    private readonly _nbuRateBotUtils: NBURateBotUtils,
+    private readonly _telegramUtils: TelegramUtils,
+    private readonly _prettyTableCreator: PrettyTableCreator,
   ) {}
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {

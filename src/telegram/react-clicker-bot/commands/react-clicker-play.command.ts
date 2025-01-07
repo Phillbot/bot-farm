@@ -8,8 +8,9 @@ import { ReactClickerAppGameUrl } from '../symbols';
 @injectable()
 export class ReactClickerBotPlayCommand {
   constructor(
-    @inject(ReactClickerAppGameUrl.$) private readonly _reactClickerAppGameUrl: string,
-    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
+    @inject(ReactClickerAppGameUrl.$)
+    private readonly _reactClickerAppGameUrl: string,
+    private readonly _telegramUtils: TelegramUtils,
   ) {}
 
   public async withCtx(ctx: CommandContext<ReactClickerBotContext>): Promise<void> {

@@ -1,6 +1,5 @@
 import { ContainerModule, interfaces } from 'inversify';
 import { LanguageCode } from 'grammy/types';
-
 import {
   NBURateBotRateAllCommand,
   NBURateBotRateMainCommand,
@@ -9,6 +8,9 @@ import {
   NBURateBotUnsubscribeCommand,
 } from '@telegram/nbu-rate-bot/commands';
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+
+import { Logger } from '@helpers/logger';
+
 import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from 'cron-jobs';
 
 import { NBURateBot } from './nbu-rate.bot';
@@ -49,7 +51,17 @@ export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
   bind<NBURateBotRateMainCommand>(NBURateBotRateMainCommand).toSelf();
   bind<NBURateBotSubscribeCommand>(NBURateBotSubscribeCommand).toSelf();
   bind<NBURateBotUnsubscribeCommand>(NBURateBotUnsubscribeCommand).toSelf();
-  bind<NBURateBotChartBuilder>(NBURateBotChartBuilder).toSelf();
+
+  bind<interfaces.Factory<NBURateBotChartBuilder>>('Factory<NBURateBotChartBuilder>').toFactory<NBURateBotChartBuilder>(
+    (ctx: interfaces.Context) => (startDate, endDate) =>
+      new NBURateBotChartBuilder(
+        ctx.container.get<string>(NbuBotCurrencies.$),
+        ctx.container.get<Logger>(Logger),
+        ctx.container.get<NBURateBotUtils>(NBURateBotUtils),
+        startDate as string,
+        endDate as string,
+      ),
+  );
 
   bind<NBURateBotChartJob>(NBURateBotChartJob).toSelf();
   bind<NBURateBotDailyExchangesJob>(NBURateBotDailyExchangesJob).toSelf();

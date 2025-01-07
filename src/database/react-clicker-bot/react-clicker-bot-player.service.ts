@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { Transaction } from 'sequelize';
 import { Logger } from '@helpers/logger';
 import { ActiveEnergyByUser, LastSession, User, UserAbility } from './react-clicker-bot.models';
@@ -15,9 +15,8 @@ import {
 @injectable()
 export class ReactClickerBotPlayerService {
   constructor(
-    @inject(ReactClickerBotSequelize)
     private readonly _reactClickerBotSequelize: ReactClickerBotSequelize,
-    @inject(Logger) private readonly _logger: Logger,
+    private readonly _logger: Logger,
   ) {}
 
   public async getUserById(user_id: number) {

@@ -14,14 +14,14 @@ import { ReactClickerBotToken, ReactClickerDefaultLang, ReactClickerSupportedLan
 @injectable()
 export class ReactClickerBot extends AbstractBaseBot<ReactClickerBotContext> {
   constructor(
-    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
     @inject(ReactClickerBotToken.$) private readonly _token: string,
     @inject(LocalesDir.$) localesDir: string,
     @inject(ReactClickerSupportedLangs.$) supportLangs: LanguageCode[],
     @inject(ReactClickerDefaultLang.$) defaultLang: LanguageCode,
-    @inject(ReactClickerBotStartCommand) reactClickerBotStartCommand: ReactClickerBotStartCommand,
-    @inject(ReactClickerBotPlayCommand) reactClickerBotPlayCommand: ReactClickerBotPlayCommand,
-    @inject(Logger) logger: Logger,
+    reactClickerBotStartCommand: ReactClickerBotStartCommand,
+    reactClickerBotPlayCommand: ReactClickerBotPlayCommand,
+    logger: Logger,
+    private readonly _telegramUtils: TelegramUtils,
   ) {
     super(
       _token,

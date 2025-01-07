@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { Cat, Random } from 'some-random-cat';
 
 import { Logger } from './logger';
@@ -12,7 +12,7 @@ export type CatType = {
 
 @injectable()
 export class GlobalUtils {
-  constructor(@inject(Logger) private readonly _logger: Logger) {}
+  constructor(private readonly _logger: Logger) {}
 
   public pickKeysFromIterable<T>(obj: T, keys: (keyof T)[]): { [k: string]: T[keyof T] } {
     return Object.fromEntries(keys.map((k) => [k, obj[k]]));
@@ -41,5 +41,29 @@ export class GlobalUtils {
 
   public isArrayEmpty(array: unknown[]): boolean {
     return typeof array === 'undefined' || array === null || (Array.isArray(array) && array.length === 0);
+  }
+
+  public isString(value: unknown): boolean {
+    return typeof value === 'string';
+  }
+
+  public isNumber(value: unknown): boolean {
+    return typeof value === 'number';
+  }
+
+  public isBoolean(value: unknown): boolean {
+    return typeof value === 'boolean';
+  }
+
+  public isObject(value: unknown): boolean {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  public isFunction(value: unknown): boolean {
+    return typeof value === 'function';
+  }
+
+  public isEmptyObject(obj: object): boolean {
+    return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
   }
 }

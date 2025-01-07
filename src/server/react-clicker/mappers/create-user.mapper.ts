@@ -1,6 +1,6 @@
 import { container } from '@config/inversify.config';
 import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/types';
-import { ReactClickerBot } from '@telegram/index';
+import { ReactClickerBot } from '@telegram';
 import { User } from 'grammy/types';
 
 import { mapBot } from './bot.mapper';

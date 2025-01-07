@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CommandContext, Context, InlineKeyboard } from 'grammy';
 import { ForceReply, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove } from 'grammy/types';
 
@@ -52,7 +52,7 @@ export class TelegramUtils {
    * is error handling in one place
    */
 
-  constructor(@inject(Logger) private readonly _logger: Logger) {}
+  constructor(private readonly _logger: Logger) {}
 
   public async sendReply<T extends Context>({ ctx, text, parse_mode, reply_markup }: ReplyType<T>): Promise<void> {
     try {

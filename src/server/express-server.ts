@@ -4,7 +4,7 @@ import { Random } from 'some-random-cat';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 
-import { NBURateBot, ReactClickerBot } from '@telegram/index';
+import { NBURateBot, ReactClickerBot } from '@telegram';
 import { NBURateBotDailyExchangesJob } from '@cron-jobs/nbu-rate-bot-daily-exchanges.job';
 import { NBURateBotChartJob } from '@cron-jobs/nbu-rate-bot-chart.job';
 import { GlobalUtils } from '@helpers/global-utils';
@@ -23,15 +23,17 @@ export class ExpressApp {
   private readonly _PORT: number = this._port ?? defaultPort;
 
   constructor(
-    @inject(PORT.$) private readonly _port: number,
-    @inject(ContactUrl.$) private readonly _contactUrl: string,
-    @inject(NBURateBot) private readonly _nbuRateBot: NBURateBot,
-    @inject(NBURateBotChartJob) private readonly _nbuRateBotChartJob: NBURateBotChartJob,
-    @inject(NBURateBotDailyExchangesJob) private readonly _nbuRateBotDailyExchangesJob: NBURateBotDailyExchangesJob,
-    @inject(ReactClickerBot) private readonly _reactClickerBot: ReactClickerBot,
-    @inject(GlobalUtils) private readonly _globalUtils: GlobalUtils,
-    @inject(ReactClickerBotRouter) private readonly _reactClickerBotRouter: ReactClickerBotRouter,
-    @inject(Logger) private readonly _logger: Logger,
+    @inject(PORT.$)
+    private readonly _port: number,
+    @inject(ContactUrl.$)
+    private readonly _contactUrl: string,
+    private readonly _nbuRateBot: NBURateBot,
+    private readonly _nbuRateBotChartJob: NBURateBotChartJob,
+    private readonly _nbuRateBotDailyExchangesJob: NBURateBotDailyExchangesJob,
+    private readonly _reactClickerBot: ReactClickerBot,
+    private readonly _globalUtils: GlobalUtils,
+    private readonly _reactClickerBotRouter: ReactClickerBotRouter,
+    private readonly _logger: Logger,
   ) {
     this._app = express();
     this.setupMiddleware();

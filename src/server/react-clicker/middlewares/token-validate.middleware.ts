@@ -13,9 +13,11 @@ export class TokenValidateMiddleware {
   private readonly seenHashes = new Set<string>();
 
   constructor(
-    @inject(Logger) private readonly _logger: Logger,
-    @inject(ReactClickerAppGameUrl.$) private readonly _appGameUrl: string,
-    @inject(SALT.$) private readonly _salt: string,
+    @inject(ReactClickerAppGameUrl.$)
+    private readonly _appGameUrl: string,
+    @inject(SALT.$)
+    private readonly _salt: string,
+    private readonly _logger: Logger,
   ) {
     this.handle = this.handle.bind(this);
   }
@@ -54,7 +56,7 @@ export class TokenValidateMiddleware {
 
       // Check and remove the oldest hash if the set exceeds the limit
       if (this.seenHashes.size >= this.MAX_HASHES) {
-        const oldestHash = this.seenHashes.values().next().value;
+        const oldestHash = this.seenHashes.values().next().value ?? '';
         this.seenHashes.delete(oldestHash);
       }
 
