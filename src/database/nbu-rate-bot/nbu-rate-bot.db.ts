@@ -61,9 +61,11 @@ export class NBURateBotPostgresqlSequelize {
   );
 
   constructor(
-    @inject(ENV.$) private readonly _env: string,
-    @inject(NbuBotPostgresConnectUrl.$) private readonly _nbuBotPostgresConnectUrl: string,
-    @inject(Logger) private readonly _logger: Logger,
+    @inject(ENV.$)
+    private readonly _env: string,
+    @inject(NbuBotPostgresConnectUrl.$)
+    private readonly _nbuBotPostgresConnectUrl: string,
+    private readonly _logger: Logger,
   ) {
     // test connection
     this._connect

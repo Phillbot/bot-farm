@@ -2,17 +2,17 @@ import { inject, injectable } from 'inversify';
 import { NextFunction, Request, Response } from 'express';
 import { User } from 'grammy/types';
 
-import { ReactClickerBot } from '@telegram/index';
-import { ReactClickerAppGameUrl, ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
+import { ReactClickerBot } from '@telegram';
+import { ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
 import { Logger } from '@helpers/logger';
 
 @injectable()
 export class AuthMiddleware {
   constructor(
-    @inject(ReactClickerBot) private readonly _bot: ReactClickerBot,
-    @inject(Logger) private readonly _logger: Logger,
-    @inject(ReactClickerSessionDuration.$) private readonly _sessionDuration: string,
-    @inject(ReactClickerAppGameUrl.$) private readonly _appGameUrl: string,
+    @inject(ReactClickerSessionDuration.$)
+    private readonly _sessionDuration: string,
+    private readonly _bot: ReactClickerBot,
+    private readonly _logger: Logger,
   ) {
     this.handle = this.handle.bind(this);
   }

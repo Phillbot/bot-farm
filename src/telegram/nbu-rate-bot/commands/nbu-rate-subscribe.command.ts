@@ -1,11 +1,11 @@
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { CommandContext } from 'grammy';
 
 import { COMMANDS, NBURateBotContext, NBURateBotUtils } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotSubscribeCommand {
-  constructor(@inject(NBURateBotUtils) private _nbuRateBotUtils: NBURateBotUtils) {}
+  constructor(private _nbuRateBotUtils: NBURateBotUtils) {}
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     if (!ctx.from?.id) {

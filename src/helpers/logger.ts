@@ -14,9 +14,14 @@ export enum LOG_TYPE {
   DEBUG = 'DEBUG',
 }
 
+// TODO: Make symbol for dynamically logger injections
+
 @injectable()
 export class Logger {
-  constructor(@inject(LogLevel.$) private readonly _logLevel: LOG_LEVEL) {}
+  constructor(
+    @inject(LogLevel.$)
+    private readonly _logLevel: LOG_LEVEL,
+  ) {}
 
   info(message: string | object, ...optionalParams: any[]): void {
     this.log(LOG_TYPE.INFO, message, ...optionalParams);

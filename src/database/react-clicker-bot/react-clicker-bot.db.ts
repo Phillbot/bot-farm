@@ -20,9 +20,11 @@ export class ReactClickerBotSequelize {
   private readonly _connect: Sequelize;
 
   constructor(
-    @inject(LogLevel.$) private readonly _logLevel: string,
-    @inject(ReactClickerPostgresConnectUrl.$) private readonly _reactClickerPostgresConnectUrl: string,
-    @inject(Logger) private readonly _logger: Logger,
+    @inject(LogLevel.$)
+    private readonly _logLevel: string,
+    @inject(ReactClickerPostgresConnectUrl.$)
+    private readonly _reactClickerPostgresConnectUrl: string,
+    private readonly _logger: Logger,
   ) {
     this._connect = new Sequelize(this._reactClickerPostgresConnectUrl, {
       logging: this._logLevel !== LOG_LEVEL.NONE,

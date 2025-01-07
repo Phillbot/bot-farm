@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { User } from 'grammy/types';
 
@@ -12,8 +12,8 @@ import { createUserResponseDataMapper } from '../mappers/create-user.mapper';
 @injectable()
 export class CreateUserController extends BaseController {
   constructor(
-    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
-    @inject(Logger) _logger: Logger,
+    protected readonly _playerService: ReactClickerBotPlayerService,
+    protected readonly _logger: Logger,
   ) {
     super(_playerService, _logger);
     this.handle = this.handle.bind(this);
@@ -24,8 +24,7 @@ export class CreateUserController extends BaseController {
       const telegramUser = this.getTelegramUser(req);
 
       if (!telegramUser) {
-        this.respondWithError(res, 404, 'Telegram user not found');
-        return;
+        return this.respondWithError(res, 404, 'Telegram user not found');
       }
 
       const validReferralId = await this.validateReferralId(telegramUser.id, req.body.referralId);
@@ -34,8 +33,7 @@ export class CreateUserController extends BaseController {
       const createdUser = await this._playerService.createUser(newUser);
 
       if (!createdUser) {
-        this.respondWithError(res, 500, 'Failed to create user');
-        return;
+        return this.respondWithError(res, 500, 'Failed to create user');
       }
 
       if (validReferralId) {
@@ -45,8 +43,7 @@ export class CreateUserController extends BaseController {
       const userData = await this._playerService.getUserData(Number(telegramUser.id));
 
       if (!userData) {
-        this.respondWithError(res, 500, 'Failed to retrieve user data after creation');
-        return;
+        return this.respondWithError(res, 500, 'Failed to retrieve user data after creation');
       }
 
       const data = await this.createResponseData(telegramUser, userData);

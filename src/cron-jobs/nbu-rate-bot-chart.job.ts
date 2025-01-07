@@ -3,34 +3,39 @@ import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
 
-import { NBUCurrencyBotUserService } from '@database/index';
+import { NBUCurrencyBotUserService } from '@database';
+
 import { Logger } from '@helpers/logger';
 
-import { NBURateBot } from '@telegram/index';
+import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NbuBotCronChartSchema, NbuBotCronTimezone } from '@telegram/nbu-rate-bot/symbols';
 import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
+import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
 import { defaultTimeZone } from './utils';
 
 @injectable()
 export class NBURateBotChartJob {
-  //TODO: Move config to ENV for abstract?
-  private readonly _startDate = moment().subtract(1, 'month').format('YYYYMMDD');
-  private readonly _endDate = moment().format('YYYYMMDD');
-  private readonly _displayFormat = 'DD.MM.YYYY';
-
   constructor(
-    @inject(NbuBotCronChartSchema.$) private readonly _nbuBotCronChartSchema: string,
-    @inject(NbuBotCronTimezone.$) private readonly _nbuBotCronTimezone: string,
-    @inject(NBUCurrencyBotUserService) private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
-    @inject(NBURateBot) private readonly _nbuRateBot: NBURateBot,
-    @inject(NBURateBotChartBuilder) private readonly _nbuRateBotChartBuilder: NBURateBotChartBuilder,
-    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
-    @inject(Logger) private readonly _logger: Logger,
-  ) {
-    this._nbuRateBotChartBuilder.setDates(this._startDate, this._endDate);
+    @inject(NbuBotCronChartSchema.$)
+    private readonly _nbuBotCronChartSchema: string,
+    @inject(NbuBotCronTimezone.$)
+    private readonly _nbuBotCronTimezone: string,
+    @inject('Factory<NBURateBotChartBuilder>')
+    private _nbuRateBotChartBuilder: (startDate: string, endDate: string) => NBURateBotChartBuilder,
+
+    private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
+    private readonly _nbuRateBot: NBURateBot,
+    private readonly _telegramUtils: TelegramUtils,
+    private readonly _logger: Logger,
+  ) {}
+
+  private useBotChartBuilderFactory() {
+    const { startDate, endDate } = this.dateConfig;
+
+    const instance = this._nbuRateBotChartBuilder(startDate, endDate);
+    return instance.build();
   }
 
   private chartSenderJob(): void {
@@ -40,7 +45,7 @@ export class NBURateBotChartJob {
         const subscribersUserIds = await this._nbuCurrencyBotUserService.getSubscribersUserIds();
 
         if (subscribersUserIds?.length) {
-          const chart = await this._nbuRateBotChartBuilder.build();
+          const chart = await this.useBotChartBuilderFactory();
           const tasks = [];
 
           for (let i = 0; i < subscribersUserIds.length; i++) {
@@ -72,13 +77,22 @@ export class NBURateBotChartJob {
   }
 
   private createCaption(lang: string): string {
+    const { startDate, endDate, displayFormat } = this.dateConfig;
+
     return this._telegramUtils.simpleCodeMessageCreator(
       this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-chart-period', {
-        startDate: moment(this._startDate).format(this._displayFormat),
-        endDate: moment(this._endDate).format(this._displayFormat),
+        startDate: moment(startDate).format(displayFormat),
+        endDate: moment(endDate).format(displayFormat),
       }),
       `*${this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-weekly-chart')}*\n\n`,
     );
+  }
+
+  private get dateConfig() {
+    const startDate = moment().subtract(1, 'month').format('YYYYMMDD');
+    const endDate = moment().format('YYYYMMDD');
+    const displayFormat = 'DD.MM.YYYY';
+    return { startDate, endDate, displayFormat };
   }
 
   public start(): void {

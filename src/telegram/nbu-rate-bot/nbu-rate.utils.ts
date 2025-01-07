@@ -1,15 +1,15 @@
 import { inject, injectable } from 'inversify';
 import axios, { AxiosResponse } from 'axios';
 import { CommandContext, Context, NextFunction, SessionFlavor } from 'grammy';
-
-import { NBUCurrencyBotUserService } from '@database/index';
-import { TelegramUtils } from '@telegram/common/telegram-utils';
-
-import { EmojiFlavor } from '@grammyjs/emoji';
-import { NBURateBotUser } from '@database/nbu-rate-bot/nbu-rate-bot.db';
-import { I18nFlavor } from '@grammyjs/i18n';
 import { LanguageCode } from 'grammy/types';
+import { I18nFlavor } from '@grammyjs/i18n';
+import { EmojiFlavor } from '@grammyjs/emoji';
+
+import { NBUCurrencyBotUserService, NBURateBotUser } from '@database';
+
+import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { SessionData } from '@telegram/common/base-bot';
+
 import { NbuBotApiUrl, NbuBotApiUrlByDate } from './symbols';
 
 type NBUPeriodRateType = Readonly<{
@@ -50,7 +50,7 @@ const R030 = [
 ] as const;
 
 // prettier-ignore
-export const currencies = [ // A3 
+export const currencies = [ 
   'AUD','CAD','CNY','CZK','DKK','HKD','HUF','INR','IDR','ILS','JPY','KZT',
   'KRW','MXN','MDL','NZD','NOK','RUB','SGD','ZAR','SEK','CHF','EGP','GBP',
   'USD','BYN','AZN','RON','TRY','XDR','BGN','EUR','PLN','DZD','BDT','AMD',
@@ -61,10 +61,10 @@ export const currencies = [ // A3
 
 export enum COMMANDS {
   START = 'start',
-  SUBSCRIBE = 'subscribe',
-  UNSUBSCRIBE = 'unsubscribe',
-  RATE = 'rate',
-  RATE_MAIN = 'rate_main',
+  SUBSCRIBE = 'sub',
+  UNSUBSCRIBE = 'unsub',
+  RATE = 'r',
+  RATE_MAIN = 'm',
 }
 
 export type NBURateType = Readonly<{
@@ -90,10 +90,12 @@ export type NBURateBotContext = EmojiFlavor<
 @injectable()
 export class NBURateBotUtils {
   constructor(
-    @inject(NbuBotApiUrlByDate.$) private readonly _nbuBotApiUrlByDate: string,
-    @inject(NbuBotApiUrl.$) private readonly _nbuBotApiUrl: string,
-    @inject(NBUCurrencyBotUserService) private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
-    @inject(TelegramUtils) private readonly _telegramUtils: TelegramUtils,
+    @inject(NbuBotApiUrlByDate.$)
+    private readonly _nbuBotApiUrlByDate: string,
+    @inject(NbuBotApiUrl.$)
+    private readonly _nbuBotApiUrl: string,
+    private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
+    private readonly _telegramUtils: TelegramUtils,
   ) {}
 
   public getNBUExchangeRate = (): Promise<AxiosResponse<NBURateType[]>> => {

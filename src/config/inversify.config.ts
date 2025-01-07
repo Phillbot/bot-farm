@@ -1,6 +1,7 @@
 import { Container } from 'inversify';
 
 import { databaseModule } from '@database/database.module';
+
 import { reactClickerServerModule } from '@server/react-clicker/react-clicker-server.module';
 
 import { telegramCommonModule } from '@telegram/common/telegram-common.module';
@@ -11,7 +12,7 @@ import { configModule } from './config.module';
 
 export const container = new Container({
   defaultScope: 'Singleton',
-  skipBaseClassChecks: true, // TODO: investigate to remove
+  skipBaseClassChecks: true,
 });
 
 container.load(

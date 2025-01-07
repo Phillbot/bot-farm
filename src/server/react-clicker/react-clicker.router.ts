@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response, Router } from 'express';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 
 import { Logger } from '@helpers/logger';
 import { TokenValidateMiddleware } from './middlewares/token-validate.middleware';
@@ -15,38 +15,38 @@ import { ReferralRewardController } from './controllers/referral-reward.controll
 import { UpdateLastLoginController } from './controllers/update-last-login.controller';
 
 enum Routes {
-  GET_ME = '/get-me',
-  CREATE_USER = '/create-user',
-  UPDATE_BALANCE = '/update-balance',
-  UPDATE_ENERGY = '/update-energy',
-  UPDATE_BOOST = '/update-boost',
-  UPDATE_ABILITY = '/update-ability',
-  UPDATE_LAST_LOGIN = '/update-last-login',
-  REFERRAL_CLAIM_REWARD = '/referral-claim-reward',
-  LOGOUT = '/logout',
+  GET_ME = 'get-me',
+  CREATE_USER = 'create-user',
+  UPDATE_BALANCE = 'update-balance',
+  UPDATE_ENERGY = 'update-energy',
+  UPDATE_BOOST = 'update-boost',
+  UPDATE_ABILITY = 'update-ability',
+  UPDATE_LAST_LOGIN = 'update-last-login',
+  REFERRAL_CLAIM_REWARD = 'referral-claim-reward',
+  LOGOUT = 'logout',
 }
 
-type RouteMap = {
+type RouteMap = Readonly<{
   [key in Routes]: RequestHandler;
-};
+}>;
 
 @injectable()
 export class ReactClickerBotRouter {
   public router: Router;
 
   constructor(
-    @inject(TokenValidateMiddleware) private readonly _tokenValidateMiddleware: TokenValidateMiddleware,
-    @inject(AuthMiddleware) private readonly _authMiddleware: AuthMiddleware,
-    @inject(GetMeController) private readonly _getMeController: GetMeController,
-    @inject(CreateUserController) private readonly _createUserController: CreateUserController,
-    @inject(UpdateBalanceController) private readonly _updateBalanceController: UpdateBalanceController,
-    @inject(UpdateEnergyController) private readonly _updateEnergyController: UpdateEnergyController,
-    @inject(UpdateBoostController) private readonly _updateBoostController: UpdateBoostController,
-    @inject(UpdateAbilityController) private readonly _updateAbilityController: UpdateAbilityController,
-    @inject(UpdateLastLoginController) private readonly _updateLastLoginController: UpdateLastLoginController,
-    @inject(ReferralRewardController) private readonly _referralRewardController: ReferralRewardController,
-    @inject(LogoutController) private readonly _logoutController: LogoutController,
-    @inject(Logger) private readonly _logger: Logger,
+    private readonly _tokenValidateMiddleware: TokenValidateMiddleware,
+    private readonly _authMiddleware: AuthMiddleware,
+    private readonly _getMeController: GetMeController,
+    private readonly _createUserController: CreateUserController,
+    private readonly _updateBalanceController: UpdateBalanceController,
+    private readonly _updateEnergyController: UpdateEnergyController,
+    private readonly _updateBoostController: UpdateBoostController,
+    private readonly _updateAbilityController: UpdateAbilityController,
+    private readonly _updateLastLoginController: UpdateLastLoginController,
+    private readonly _referralRewardController: ReferralRewardController,
+    private readonly _logoutController: LogoutController,
+    private readonly _logger: Logger,
   ) {
     this.router = Router();
     this.initializeRoutes();
@@ -70,7 +70,7 @@ export class ReactClickerBotRouter {
     };
 
     Object.entries(routeMap).forEach(([route, handler]) => {
-      this.router.post(route, handler);
+      this.router.post('/' + route, handler);
     });
   }
 

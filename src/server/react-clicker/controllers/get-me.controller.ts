@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { User } from 'grammy/types';
 
@@ -12,8 +12,8 @@ import { createUserResponseDataMapper } from '../mappers/create-user.mapper';
 @injectable()
 export class GetMeController extends BaseController {
   constructor(
-    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
-    @inject(Logger) _logger: Logger,
+    protected readonly _playerService: ReactClickerBotPlayerService,
+    protected readonly _logger: Logger,
   ) {
     super(_playerService, _logger);
     this.handle = this.handle.bind(this);

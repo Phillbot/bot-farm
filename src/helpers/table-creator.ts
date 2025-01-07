@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 import { Cell, PrettyTable } from 'prettytable.js';
 
 import { Logger } from '@helpers/logger';
@@ -25,8 +25,8 @@ type TableBuilderType<T> = Readonly<{
 @injectable()
 export class PrettyTableCreator {
   constructor(
-    @inject(GlobalUtils) private readonly _globalUtils: GlobalUtils,
-    @inject(Logger) private readonly _logger: Logger,
+    private readonly _globalUtils: GlobalUtils,
+    private readonly _logger: Logger,
   ) {}
 
   /**

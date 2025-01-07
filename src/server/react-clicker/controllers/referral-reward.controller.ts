@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { inject, injectable } from 'inversify';
+import { injectable } from 'inversify';
 
 import { Logger } from '@helpers/logger';
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
@@ -9,8 +9,8 @@ import { mapReferralUser } from '../mappers/referrals.mapper';
 @injectable()
 export class ReferralRewardController extends BaseController {
   constructor(
-    @inject(ReactClickerBotPlayerService) _playerService: ReactClickerBotPlayerService,
-    @inject(Logger) _logger: Logger,
+    protected readonly _playerService: ReactClickerBotPlayerService,
+    protected readonly _logger: Logger,
   ) {
     super(_playerService, _logger);
     this.handle = this.handle.bind(this);
