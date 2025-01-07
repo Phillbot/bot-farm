@@ -6,6 +6,7 @@ import { LocalesDir } from '@telegram/common/symbols';
 import { Logger } from '@helpers/logger';
 
 import {
+  NBURateBotBarChartCommand,
   NBURateBotRateAllCommand,
   NBURateBotRateMainCommand,
   NBURateBotStartCommand,
@@ -28,6 +29,7 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
     nbuRateBotRateMainCommand: NBURateBotRateMainCommand,
     nbuRateBotSubscribeCommand: NBURateBotSubscribeCommand,
     nbuRateBotUnsubscribeCommand: NBURateBotUnsubscribeCommand,
+    nbuRateBotBarYearChartCommand: NBURateBotBarChartCommand,
     logger: Logger,
     private readonly _nbuRateBotUtils: NBURateBotUtils,
   ) {
@@ -41,6 +43,7 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
         nbuRateBotRateMainCommand,
         nbuRateBotSubscribeCommand,
         nbuRateBotUnsubscribeCommand,
+        nbuRateBotBarYearChartCommand,
       ),
       NBURateBot.createDescriptorsMap(),
       supportedLangs,
@@ -55,6 +58,7 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
     rateMainCommand: NBURateBotRateMainCommand,
     subscribeCommand: NBURateBotSubscribeCommand,
     unsubscribeCommand: NBURateBotUnsubscribeCommand,
+    chartCommand: NBURateBotBarChartCommand,
   ): Map<string, { instance: ICommand }> {
     return new Map<string, { instance: ICommand }>([
       [COMMANDS.START, { instance: startCommand }],
@@ -62,6 +66,7 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
       [COMMANDS.RATE_MAIN, { instance: rateMainCommand }],
       [COMMANDS.SUBSCRIBE, { instance: subscribeCommand }],
       [COMMANDS.UNSUBSCRIBE, { instance: unsubscribeCommand }],
+      [COMMANDS.CHART, { instance: chartCommand }],
     ]);
   }
 
@@ -72,6 +77,7 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
       [COMMANDS.RATE_MAIN, 'nbu-exchange-bot-rate-main-command-descriptor'],
       [COMMANDS.SUBSCRIBE, 'nbu-exchange-bot-subscribe-command-descriptor'],
       [COMMANDS.UNSUBSCRIBE, 'nbu-exchange-bot-unsubscribe-command-descriptor'],
+      [COMMANDS.CHART, 'nbu-exchange-bot-chart-command-descriptor'],
     ]);
   }
 

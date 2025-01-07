@@ -10,7 +10,7 @@ import { Logger } from '@helpers/logger';
 import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NbuBotCronChartSchema, NbuBotCronTimezone } from '@telegram/nbu-rate-bot/symbols';
-import { NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
+import { NBUChartPeriod, NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
 import { defaultTimeZone } from './utils';
@@ -23,8 +23,11 @@ export class NBURateBotChartJob {
     @inject(NbuBotCronTimezone.$)
     private readonly _nbuBotCronTimezone: string,
     @inject('Factory<NBURateBotChartBuilder>')
-    private _nbuRateBotChartBuilder: (startDate: string, endDate: string) => NBURateBotChartBuilder,
-
+    private _nbuRateBotChartBuilder: (
+      startDate: string,
+      endDate: string,
+      type: NBUChartPeriod,
+    ) => NBURateBotChartBuilder,
     private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
     private readonly _nbuRateBot: NBURateBot,
     private readonly _telegramUtils: TelegramUtils,
@@ -34,7 +37,7 @@ export class NBURateBotChartJob {
   private useBotChartBuilderFactory() {
     const { startDate, endDate } = this.dateConfig;
 
-    const instance = this._nbuRateBotChartBuilder(startDate, endDate);
+    const instance = this._nbuRateBotChartBuilder(startDate, endDate, 'month');
     return instance.build();
   }
 
