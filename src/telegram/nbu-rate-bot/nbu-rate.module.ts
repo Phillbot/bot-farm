@@ -1,6 +1,7 @@
 import { ContainerModule, interfaces } from 'inversify';
 import { LanguageCode } from 'grammy/types';
 import {
+  NBURateBotBarChartCommand,
   NBURateBotRateAllCommand,
   NBURateBotRateMainCommand,
   NBURateBotStartCommand,
@@ -27,7 +28,7 @@ import {
   NbuBotToken,
   NbuBotWebLink,
 } from './symbols';
-import { NBURateBotChartBuilder } from './nbu-rate-chart-builder.service';
+import { NBUChartPeriod, NBURateBotChartBuilder } from './nbu-rate-chart-builder.service';
 
 export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
   bind<string>(NbuBotToken.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_BOT_TOKEN!);
@@ -51,15 +52,17 @@ export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
   bind<NBURateBotRateMainCommand>(NBURateBotRateMainCommand).toSelf();
   bind<NBURateBotSubscribeCommand>(NBURateBotSubscribeCommand).toSelf();
   bind<NBURateBotUnsubscribeCommand>(NBURateBotUnsubscribeCommand).toSelf();
+  bind<NBURateBotBarChartCommand>(NBURateBotBarChartCommand).toSelf();
 
   bind<interfaces.Factory<NBURateBotChartBuilder>>('Factory<NBURateBotChartBuilder>').toFactory<NBURateBotChartBuilder>(
-    (ctx: interfaces.Context) => (startDate, endDate) =>
+    (ctx: interfaces.Context) => (startDate, endDate, period) =>
       new NBURateBotChartBuilder(
         ctx.container.get<string>(NbuBotCurrencies.$),
         ctx.container.get<Logger>(Logger),
         ctx.container.get<NBURateBotUtils>(NBURateBotUtils),
         startDate as string,
         endDate as string,
+        period as NBUChartPeriod,
       ),
   );
 

@@ -4,11 +4,11 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration } from 'chart.js';
 
-import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { NBURateBotUtils, NBURateType } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { Logger } from '@helpers/logger';
 import { NbuBotCurrencies } from './symbols';
 
-// TODO: make abstract builder
+export type NBUChartPeriod = 'month' | 'year';
 
 @injectable()
 export class NBURateBotChartBuilder {
@@ -19,102 +19,133 @@ export class NBURateBotChartBuilder {
     private readonly _nbuRateBotUtils: NBURateBotUtils,
     public _startDate: string,
     public _endDate: string,
+    public _period: NBUChartPeriod,
   ) {}
 
   public async build(): Promise<Buffer> {
     try {
-      // Fetch data
-      const response = await this._nbuRateBotUtils.getNBUExchangeRateByPeriod(this._startDate, this._endDate);
-
-      // Check if response and data exist
-      if (!response || !response.data) {
-        this._logger.error('Failed to fetch exchange rate data');
-        return Buffer.from(''); // Return an empty buffer or a placeholder buffer
+      const data = await this.fetchData();
+      if (!data) {
+        return Buffer.from('');
       }
 
-      const { data } = response;
+      const finalizatedData = this._period === 'month' ? data : this.getFirstDayRates(data);
 
-      const currencies = this._nbuBotCurrencies?.split(',') ?? [];
-      const filteredData = data.filter(({ cc }) => currencies.includes(cc));
-
-      // Ensure filteredData is not empty
-      if (!filteredData.length) {
-        this._logger.error('No data found for the specified currencies');
-        return Buffer.from(''); // Return an empty buffer or a placeholder buffer
+      if (!finalizatedData.length) {
+        return Buffer.from('');
       }
 
-      const labels = [...new Set(filteredData.map(({ exchangedate }) => exchangedate))];
+      const labels = [...new Set(finalizatedData.map(({ exchangedate }) => exchangedate))];
+      const datasets = this.createDatasets(finalizatedData);
 
-      const resolution = this.getResolution(labels);
-
-      const canvasRenderService = new ChartJSNodeCanvas({ ...resolution });
-
-      const datasets = currencies.map((currency) => ({
-        label: currency,
-        data: filteredData.filter(({ cc }) => cc === currency).map(({ rate }) => rate),
-        fill: false,
-        borderColor: uniqolor(currency, {
-          format: 'rgb',
-        }).color,
-        tension: 0.1,
-      }));
-
-      const createChartBuffer = async () => {
-        const chartConfig: ChartConfiguration = {
-          plugins: [ChartDataLabels],
-          type: 'line',
-          data: {
-            labels,
-            datasets,
-          },
-          options: {
-            plugins: {
-              datalabels: {
-                align: 'top',
-                display: 'auto',
-                font: {
-                  weight: 'bold',
-                },
-              },
-            },
-          },
-        };
-
-        const dataUrl = await canvasRenderService.renderToBuffer(chartConfig);
-        return dataUrl;
-      };
-
-      const chart = await createChartBuffer();
+      const chart =
+        this._period === 'month'
+          ? await this.createChartBufferLine(labels, datasets)
+          : await this.createChartBufferBar(labels, datasets);
 
       return chart;
     } catch (error) {
       this._logger.error('An error occurred while building the chart:', error);
-      return Buffer.from(''); // Return an empty buffer or a placeholder buffer
+      return Buffer.from('');
     }
   }
 
-  private getResolution(labels: string[]): { width: number; height: number } {
-    const FullHD = {
-      width: 1920,
-      height: 1080,
+  private async fetchData(): Promise<NBURateType[] | null> {
+    const response = await this._nbuRateBotUtils.getNBUExchangeRateByPeriod(this._startDate, this._endDate);
+    if (!response || !response.data) {
+      this._logger.error('Failed to fetch exchange rate data');
+      return null;
+    }
+
+    const currencies = this._nbuBotCurrencies?.split(',') ?? [];
+    return response.data.filter(({ cc }) => currencies.includes(cc));
+  }
+
+  private createDatasets(data: NBURateType[]): ChartConfiguration['data']['datasets'] {
+    const currencies = this._nbuBotCurrencies?.split(',') ?? [];
+    return currencies.map((currency) => {
+      const color = this.getColorByCurrency(currency);
+      return {
+        label: currency,
+        data: data.filter(({ cc }) => cc === currency).map(({ rate }) => rate),
+        fill: false,
+        backgroundColor: color,
+        borderColor: color,
+        tension: 1,
+      };
+    });
+  }
+
+  private async createChartBufferBar(
+    labels: string[],
+    datasets: ChartConfiguration['data']['datasets'],
+  ): Promise<Buffer> {
+    const chartConfig: ChartConfiguration = {
+      plugins: [ChartDataLabels],
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        indexAxis: 'x',
+        plugins: {
+          datalabels: {
+            align: 'end',
+            anchor: 'end',
+            display: 'auto',
+            font: { weight: 'bold' },
+          },
+        },
+        scales: {
+          x: { beginAtZero: true },
+          y: { beginAtZero: true },
+        },
+      },
     };
 
-    const HD = {
-      width: 1280,
-      height: 720,
+    const canvasRenderService = new ChartJSNodeCanvas({ width: 1280, height: 720 });
+    return await canvasRenderService.renderToBuffer(chartConfig);
+  }
+
+  private async createChartBufferLine(
+    labels: string[],
+    datasets: ChartConfiguration['data']['datasets'],
+  ): Promise<Buffer> {
+    const maxY = datasets.reduce((max, dataset) => Math.max(max, ...(dataset.data as number[])), 0) * 1.2;
+
+    const chartConfig: ChartConfiguration = {
+      plugins: [ChartDataLabels],
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        scales: {
+          y: { type: 'linear', beginAtZero: true, max: maxY },
+        },
+        plugins: {
+          datalabels: {
+            align: 'end',
+            anchor: 'center',
+            display: 'auto',
+            font: { weight: 'bold' },
+          },
+        },
+      },
     };
 
-    const XGA = {
-      width: 1024,
-      height: 768,
+    const canvasRenderService = new ChartJSNodeCanvas({ width: 1920, height: 1080 });
+    return await canvasRenderService.renderToBuffer(chartConfig);
+  }
+
+  private getColorByCurrency(currency: string): string {
+    const schema: Record<string, string> = {
+      USD: '#85bb65',
+      EUR: '#a653ec',
+      CAD: '#4682b4',
+      ILS: '#d53e07',
     };
 
-    const dataLength = labels.length;
+    return schema[currency] ?? uniqolor(currency).color;
+  }
 
-    if (dataLength >= 100) {
-      return FullHD;
-    } else if (dataLength < 100 && dataLength >= 50) {
-      return HD;
-    } else return XGA;
+  private getFirstDayRates(data: NBURateType[]): NBURateType[] {
+    return data.filter(({ exchangedate }) => exchangedate.startsWith('01.'));
   }
 }

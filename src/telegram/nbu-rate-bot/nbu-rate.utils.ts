@@ -65,6 +65,7 @@ export enum COMMANDS {
   UNSUBSCRIBE = 'unsub',
   RATE = 'r',
   RATE_MAIN = 'm',
+  CHART = 'chart',
 }
 
 export type NBURateType = Readonly<{
