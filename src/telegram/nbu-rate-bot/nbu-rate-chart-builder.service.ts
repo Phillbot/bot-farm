@@ -10,6 +10,8 @@ import { NbuBotCurrencies } from './symbols';
 
 export type NBUChartPeriod = 'month' | 'year';
 
+// TODO: put methods of charts creating into a separate abstract builder
+
 @injectable()
 export class NBURateBotChartBuilder {
   constructor(
@@ -88,10 +90,14 @@ export class NBURateBotChartBuilder {
         indexAxis: 'x',
         plugins: {
           datalabels: {
-            align: 'end',
+            align: 'start',
             anchor: 'end',
             display: 'auto',
             font: { weight: 'bold' },
+            backgroundColor: '#f2f2f2',
+            borderRadius: 50,
+            borderColor: '#595959',
+            borderWidth: 1,
           },
         },
         scales: {
@@ -130,7 +136,7 @@ export class NBURateBotChartBuilder {
       },
     };
 
-    const canvasRenderService = new ChartJSNodeCanvas({ width: 1920, height: 1080 });
+    const canvasRenderService = new ChartJSNodeCanvas({ width: 1680, height: 1050 });
     return await canvasRenderService.renderToBuffer(chartConfig);
   }
 
