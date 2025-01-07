@@ -1,7 +1,9 @@
 import { inject, injectable } from 'inversify';
 import { Sequelize } from 'sequelize';
+
 import { LogLevel } from '@config/symbols';
 import { LOG_LEVEL, Logger } from '@helpers/logger';
+
 import { ReactClickerPostgresConnectUrl } from '@database/symbols';
 import {
   Ability,
@@ -27,16 +29,14 @@ export class ReactClickerBotSequelize {
     private readonly _logger: Logger,
   ) {
     this._connect = new Sequelize(this._reactClickerPostgresConnectUrl, {
-      logging: this._logLevel !== LOG_LEVEL.NONE,
+      logging: (msg) => this._logLevel !== LOG_LEVEL.NONE && this._logger.info(`[ReactClickerBotSequelize]: ${msg}`),
       define: {
         hooks: {},
       },
     });
 
-    // Инициализация моделей
     initializeModels(this._connect);
 
-    // Тестовое подключение
     this._connect
       .authenticate()
       .then(() => this._logger.info({ database: ReactClickerBotSequelize.name, ok: true }))
