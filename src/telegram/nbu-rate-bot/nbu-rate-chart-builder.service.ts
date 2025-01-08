@@ -82,6 +82,8 @@ export class NBURateBotChartBuilder {
     labels: string[],
     datasets: ChartConfiguration['data']['datasets'],
   ): Promise<Buffer> {
+    const maxY = datasets.reduce((max, dataset) => Math.max(max, ...(dataset.data as number[])), 0) * 1.2;
+
     const chartConfig: ChartConfiguration = {
       plugins: [ChartDataLabels],
       type: 'bar',
@@ -90,8 +92,9 @@ export class NBURateBotChartBuilder {
         indexAxis: 'x',
         plugins: {
           datalabels: {
-            align: 'top',
+            display: 'auto',
             anchor: 'end',
+            align: 'top',
             font: { weight: 'bold' },
             backgroundColor: '#f2f2f2',
             borderRadius: 50,
@@ -100,8 +103,18 @@ export class NBURateBotChartBuilder {
           },
         },
         scales: {
-          x: { beginAtZero: true },
-          y: { beginAtZero: true },
+          x: {
+            beginAtZero: true,
+            offset: true,
+          },
+          y: {
+            beginAtZero: true,
+            offset: true,
+            max: maxY,
+            ticks: {
+              padding: 10,
+            },
+          },
         },
       },
     };
