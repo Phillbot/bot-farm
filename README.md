@@ -109,7 +109,7 @@ This project is licensed under the MIT License.
 - [ ] **Connect JIRA**: Integrate JIRA for project management and issue tracking.
 - [ ] **Queue + Redis**: Implement a queuing system with Redis for better task management and performance.
 - [ ] **Move under express control**: Manage the bot under Express for more flexible server actions (webhooks, etc.).
-- [ ] **Replace moment.js**: Use native code or something else lib
+- [x] **Replace moment.js**: Use native code or something else lib
 
 ---
 
