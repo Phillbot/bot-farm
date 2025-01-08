@@ -17,7 +17,7 @@ export class NBURateBotBarChartCommand {
   ) {}
 
   private useBotChartBuilderFactory() {
-    const startDate = moment().subtract(1, 'year').format('YYYYMMDD');
+    const startDate = moment().subtract(1, 'year').subtract(1, 'month').format('YYYYMMDD');
     const endDate = moment().startOf('month').format('YYYYMMDD');
 
     return this._nbuRateBotChartBuilder(startDate, endDate, 'year').build();

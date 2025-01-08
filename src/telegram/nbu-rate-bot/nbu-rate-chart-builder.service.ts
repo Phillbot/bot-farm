@@ -90,9 +90,8 @@ export class NBURateBotChartBuilder {
         indexAxis: 'x',
         plugins: {
           datalabels: {
-            align: 'start',
+            align: 'top',
             anchor: 'end',
-            display: 'auto',
             font: { weight: 'bold' },
             backgroundColor: '#f2f2f2',
             borderRadius: 50,
@@ -107,7 +106,7 @@ export class NBURateBotChartBuilder {
       },
     };
 
-    const canvasRenderService = new ChartJSNodeCanvas({ width: 1280, height: 720 });
+    const canvasRenderService = new ChartJSNodeCanvas({ width: 1920, height: 1080 });
     return await canvasRenderService.renderToBuffer(chartConfig);
   }
 
