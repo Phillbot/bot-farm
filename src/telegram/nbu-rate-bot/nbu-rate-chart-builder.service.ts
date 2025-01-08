@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import uniqolor from 'uniqolor';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
-import { ChartConfiguration } from 'chart.js';
+import { Chart, ChartConfiguration } from 'chart.js';
 
 import { NBURateBotUtils, NBURateType } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { Logger } from '@helpers/logger';
@@ -85,23 +85,11 @@ export class NBURateBotChartBuilder {
     const maxY = datasets.reduce((max, dataset) => Math.max(max, ...(dataset.data as number[])), 0) * 1.2;
 
     const chartConfig: ChartConfiguration = {
-      plugins: [ChartDataLabels],
+      plugins: [this.customDataLabelPlugin],
       type: 'bar',
       data: { labels, datasets },
       options: {
         indexAxis: 'x',
-        plugins: {
-          datalabels: {
-            display: 'auto',
-            anchor: 'end',
-            align: 'top',
-            font: { weight: 'bold' },
-            backgroundColor: '#f2f2f2',
-            borderRadius: 50,
-            borderColor: '#595959',
-            borderWidth: 1,
-          },
-        },
         scales: {
           x: {
             beginAtZero: true,
@@ -109,11 +97,7 @@ export class NBURateBotChartBuilder {
           },
           y: {
             beginAtZero: true,
-            offset: true,
             max: maxY,
-            ticks: {
-              padding: 10,
-            },
           },
         },
       },
@@ -166,4 +150,49 @@ export class NBURateBotChartBuilder {
   private getFirstDayRates(data: NBURateType[]): NBURateType[] {
     return data.filter(({ exchangedate }) => exchangedate.startsWith('01.'));
   }
+
+  private customDataLabelPlugin = {
+    id: 'customDataLabel',
+    afterDatasetsDraw: (chart: Chart) => {
+      const { ctx } = chart;
+      chart.data.datasets.forEach((dataset, datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+
+        meta.data.forEach((bar, index) => {
+          const value = dataset.data[index];
+
+          if (value !== null && value !== undefined) {
+            const x = bar.x;
+            const y = bar.y - 10;
+
+            const fontSize = 12;
+            const padding = 10;
+            const borderRadius = 8;
+            const text = String(value);
+            const textWidth = ctx.measureText(text).width;
+            const boxWidth = textWidth + padding * 2;
+            const boxHeight = fontSize + padding;
+
+            const boxX = x - boxWidth / 2;
+            const boxY = y - boxHeight - 3;
+
+            ctx.save();
+            ctx.fillStyle = '#f2f2f2';
+            ctx.strokeStyle = '#595959';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxWidth, boxHeight, borderRadius);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = 'black';
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText(text, x, y - boxHeight / 2 - 2);
+            ctx.restore();
+          }
+        });
+      });
+    },
+  };
 }
