@@ -1,6 +1,7 @@
-import moment from 'moment';
 import { inject, injectable } from 'inversify';
 import { CommandContext, InputFile } from 'grammy';
+
+import { defaultTimeZone } from '@config/date.config';
 
 import { NBURateBotContext } from '../nbu-rate.utils';
 import { NBUChartPeriod, NBURateBotChartBuilder } from '../nbu-rate-chart-builder.service';
@@ -17,10 +18,17 @@ export class NBURateBotBarChartCommand {
   ) {}
 
   private useBotChartBuilderFactory() {
-    const startDate = moment().subtract(1, 'year').subtract(1, 'month').format('YYYYMMDD');
-    const endDate = moment().startOf('month').format('YYYYMMDD');
+    const startDate = new Date(new Date().toLocaleString('en-US', { timeZone: defaultTimeZone }));
+    startDate.setFullYear(startDate.getFullYear() - 1);
+    startDate.setMonth(startDate.getMonth() - 1);
+    const formattedStartDate = startDate.toISOString().slice(0, 10).replace(/-/g, '');
 
-    return this._nbuRateBotChartBuilder(startDate, endDate, 'year').build();
+    const endDate = new Date(new Date().toLocaleString('en-US', { timeZone: defaultTimeZone }));
+    endDate.setMonth(0);
+    endDate.setDate(1);
+    const formattedEndDate = endDate.toISOString().slice(0, 10).replace(/-/g, '');
+
+    return this._nbuRateBotChartBuilder(formattedStartDate, formattedEndDate, 'year').build();
   }
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {

@@ -5,14 +5,13 @@ import { CronJob } from 'cron';
 import { NBUCurrencyBotUserService } from '@database';
 import { Logger } from '@helpers/logger';
 import { PrettyTableCreator } from '@helpers/table-creator';
+import { defaultTimeZone } from '@config/date.config';
 
 import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBURateBotUtils, NBURateType, defaultLang, mainCurrencies } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NbuBotCronTableSchema, NbuBotCronTimezone, NbuBotWebLink } from '@telegram/nbu-rate-bot/symbols';
 import { datingAdvertisementMessage, nudificationAdvertisementMessage } from '@telegram/advertisement/messages';
-
-import { defaultTimeZone } from './utils';
 
 @injectable()
 export class NBURateBotDailyExchangesJob {
