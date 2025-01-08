@@ -19,7 +19,7 @@ nbu-exchange-bot-rate-command-descriptor = Show NBU exchanges. All or by currenc
 nbu-exchange-bot-rate-main-command-descriptor = Show NBU USD and EUR exchanges
 nbu-exchange-bot-chart-command-descriptor = Year stats chart 
 
-nbu-exchange-bot-exchange-rates-url-text = Check on site
+nbu-exchange-bot-exchange-rates-url-text = Check rate on site
 
 nbu-exchange-bot-exchange-rates-table-cc = Name
 nbu-exchange-bot-exchange-rates-table-rate = Rate

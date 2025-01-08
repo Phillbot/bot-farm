@@ -19,7 +19,7 @@ nbu-exchange-bot-rate-command-descriptor = Показати курс НБУ. В�
 nbu-exchange-bot-rate-main-command-descriptor = Показати курс НБУ USD та EUR
 nbu-exchange-bot-chart-command-descriptor = Графік за рік
 
-nbu-exchange-bot-exchange-rates-url-text = Перевірити на сайті
+nbu-exchange-bot-exchange-rates-url-text = Перевірити курс на сайті
 
 nbu-exchange-bot-exchange-rates-table-cc = Назва
 nbu-exchange-bot-exchange-rates-table-rate = Курс

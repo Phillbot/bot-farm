@@ -10,6 +10,7 @@ import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBURateBotUtils, NBURateType, defaultLang, mainCurrencies } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NbuBotCronTableSchema, NbuBotCronTimezone, NbuBotWebLink } from '@telegram/nbu-rate-bot/symbols';
+import { datingAdvertisementMessage, nudificationAdvertisementMessage } from '@telegram/advertisement/messages';
 
 import { defaultTimeZone } from './utils';
 
@@ -45,14 +46,21 @@ export class NBURateBotDailyExchangesJob {
               await new Promise((res) => setTimeout(res, delay));
 
               const table = await this.buildTable(lang);
+
+              const adv = lang !== 'uk' ? datingAdvertisementMessage : nudificationAdvertisementMessage;
+
               const message = this._telegramUtils.codeMessageCreator(
                 table.toString(),
-                `*${this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-automatic-exchange-message')}*\n\n`,
+                `*${this._nbuRateBot.i18n.t(lang, 'nbu-exchange-bot-automatic-exchange-message')}*\n\n${adv}\n\n`,
               );
 
               const result = await this._nbuRateBot.bot.api
                 .sendMessage(subscriber.user_id, message, {
                   parse_mode: 'MarkdownV2',
+                  link_preview_options: {
+                    is_disabled: true,
+                  },
+
                   reply_markup: this._telegramUtils.inlineKeyboardBuilder([
                     {
                       type: 'url',
