@@ -11,7 +11,6 @@ import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBURateBotUtils, NBURateType, defaultLang, mainCurrencies } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 import { NbuBotCronTableSchema, NbuBotCronTimezone, NbuBotWebLink } from '@telegram/nbu-rate-bot/symbols';
-import { datingAdvertisementMessage, nudificationAdvertisementMessage } from '@telegram/advertisement/messages';
 
 @injectable()
 export class NBURateBotDailyExchangesJob {
@@ -46,7 +45,7 @@ export class NBURateBotDailyExchangesJob {
 
               const table = await this.buildTable(lang);
 
-              const adv = lang !== 'uk' ? datingAdvertisementMessage : nudificationAdvertisementMessage;
+              const adv = '';
 
               const message = this._telegramUtils.codeMessageCreator(
                 table.toString(),
