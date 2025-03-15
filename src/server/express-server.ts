@@ -1,3 +1,4 @@
+import path from 'path';
 import express, { Application, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { Random } from 'some-random-cat';
@@ -36,15 +37,17 @@ export class ExpressApp {
     private readonly _logger: Logger,
   ) {
     this._app = express();
+
     this.setupMiddleware();
+    this.setupViews();
     this.setupRoutes();
     this.bootstrap();
   }
 
   private setupMiddleware(): void {
     const limiter = rateLimit({
-      windowMs: 1 * 60 * 1000, // 1 minute
-      max: 100, // limit each IP to 100 requests per windowMs
+      windowMs: 1 * 60 * 1000,
+      max: 100,
       message: {
         success: false,
         message: 'Too many requests, please try again later.',
@@ -52,32 +55,35 @@ export class ExpressApp {
       headers: true,
     });
 
-    this._app.use(cors()); // TODO: Setup cors from .ENV
-
+    this._app.use(cors()); // TODO: Настроить CORS из .ENV
     this._app.use(limiter);
     this._app.use(express.json());
     this._app.use(express.urlencoded({ extended: true }));
   }
 
+  private setupViews(): void {
+    this._app.set('views', path.join(process.cwd(), 'src/server/views'));
+    this._app.set('view engine', 'ejs');
+    this._app.use(express.static(path.join(process.cwd(), 'public')));
+  }
+
   private setupRoutes(): void {
+    // 📌 API and bots
     this._app.use('/api', router);
     this._app.use('/react-clicker-bot', this._reactClickerBotRouter.router);
 
-    // TODO: Work with router, crate enums for base path
-
-    // Handle other routes for Single Page Application
+    // 📌 Main view route
     this._app.get('*', async (_: Request, res: Response) => {
-      const cat = await Random.getCat();
-      res.send(
-        `
-          <div>
-            <a href=${this._contactUrl} target='_blank'>Telegram</a>
-            <img src=${cat?.url} alt='cat' />
-          </div>
-          `,
-      );
+      try {
+        const cat = await Random.getCat();
+        res.render('index', { cat: cat?.url, telegram: this._contactUrl });
+      } catch (error) {
+        this._logger.error('Ошибка рендера страницы:', error);
+        res.status(500).send('Ошибка загрузки страницы');
+      }
     });
 
+    // 📌 Errors
     this._app.use((err: Error, req: Request, res: Response) => {
       this._logger.error(err.stack || 'Some error in app use');
       res.status(500).json({ error: 'Something went wrong!' });
@@ -88,7 +94,6 @@ export class ExpressApp {
     this._app.listen(this._PORT, async () => {
       try {
         const cat = await this._globalUtils.getRandomCat();
-
         this._logger.info({
           server: ExpressApp.name,
           status: 'ok',
@@ -96,7 +101,7 @@ export class ExpressApp {
           cat: cat?.url,
         });
       } catch (error) {
-        this._logger.error('Error during server startup:', error, { status: 'failed' });
+        this._logger.error('Ошибка при запуске сервера:', error, { status: 'failed' });
       }
     });
   }
@@ -110,7 +115,7 @@ export class ExpressApp {
       this._nbuRateBot.botStart();
       this._nbuRateBotChartJob.start();
       this._nbuRateBotDailyExchangesJob.start();
-      this._reactClickerBot.botStart();
+      // this._reactClickerBot.botStart();
     } catch (error) {
       this._logger.error('Error during bot or job startup:', error);
     }

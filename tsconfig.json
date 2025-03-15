@@ -33,7 +33,7 @@
       "@cron-jobs/*": ["cron-jobs/*"],
     },
   },
-  "include": ["./src/**/*", "src/@types/**/*.d.ts", "declaration.d.ts"],
+  "include": ["./src/**/*", "src/@types/**/*.d.ts", "declaration.d.ts", "src/views/**/*"],
   "exclude": ["node_modules", "helpers/copy-dir.ts"],
   "ts-node": {
     "require": ["tsconfig-paths/register"],
