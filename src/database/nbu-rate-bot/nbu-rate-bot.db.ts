@@ -1,11 +1,11 @@
 import { URL } from 'url';
 
-import { inject, injectable } from 'inversify';
+import { inject, injectable, optional } from 'inversify';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
 import { Logger } from '@helpers/logger';
 import { LogLevel } from '@config/symbols';
-import { NbuBotPostgresConnectUrl } from '@database/symbols';
+import { NbuBotPostgresConnectUrl, NbuBotPostgresPort } from '@database/symbols';
 
 enum NBU_RATE_BOT_CONNECTION_DATA {
   TABLE_SUBSCRIBERS = 'bot_subscribers',
@@ -35,6 +35,9 @@ export class NBURateBotPostgresqlSequelize {
     @inject(LogLevel.$)
     private readonly _logLevel: string,
     private readonly _logger: Logger,
+    @inject(NbuBotPostgresPort.$)
+    @optional()
+    private readonly _nbuBotPostgresPort?: number,
   ) {
     const connectionUrl = this.normalizeConnectionUrl(this._nbuBotPostgresConnectUrl);
 
@@ -87,11 +90,6 @@ export class NBURateBotPostgresqlSequelize {
           database: NBURateBotPostgresqlSequelize.name,
           ok: true,
         });
-        // Run sync to align DB schema after authentication succeeds.
-        return this._connect.sync({ alter: true });
-      })
-      .then(() => {
-        this._logger.info('Sequelize models synced!');
       })
       .catch((error) => this._logger.error(error));
   }
@@ -104,7 +102,8 @@ export class NBURateBotPostgresqlSequelize {
     try {
       const parsedUrl = new URL(connectionUrl);
 
-      const port = process.env.NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_PORT;
+      const port = this._nbuBotPostgresPort?.toString();
+
       if (port && parsedUrl.port !== port) {
         parsedUrl.port = port;
       }

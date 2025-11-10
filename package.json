@@ -11,6 +11,10 @@
     "start": "node dist/index.js",
     "start:dev": "npx nodemon",
     "build": "rm -rf ./dist && tsc && tsc-alias && node helpers/copy-dir.ts",
+    "migrate:nbu": "sequelize-cli db:migrate --env nbu",
+    "migrate:nbu:undo": "sequelize-cli db:migrate:undo --env nbu",
+    "migrate:react-clicker": "sequelize-cli db:migrate --env reactClicker",
+    "migrate:react-clicker:undo": "sequelize-cli db:migrate:undo --env reactClicker",
     "prettier": "prettier --write \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "prettier:check": "prettier -c \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "lint": "eslint  --ext .tsx,.ts --fix src/"
@@ -28,6 +32,7 @@
     "nodemon": "3.0.1",
     "prettier": "3.2.4",
     "rimraf": "5.0.1",
+    "sequelize-cli": "^6.6.3",
     "ts-node": "10.9.1",
     "tsc-alias": "1.8.8",
     "tsconfig-paths": "4.2.0",

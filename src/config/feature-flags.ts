@@ -1,5 +1,3 @@
-import { isTrue } from '../utils/env.utils';
+import { environment } from './environment';
 
-export const featureFlags = {
-  reactClickerEnabled: isTrue(process.env.REACT_CLICKER_FEATURE_ENABLED),
-} as const;
+export const featureFlags = environment.features;

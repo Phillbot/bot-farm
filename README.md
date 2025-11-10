@@ -56,6 +56,19 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 | REACT_CLICKER_APP_BOT_TIME_ZONE                   | Timezone for React Clicker bot                    | string                       |
 | REACT_CLICKER_FEATURE_ENABLED                     | Enable React Clicker bot/API modules (`true`/`false`) | string                    |
 
+> **Note:** all variables are validated on startup via `src/config/environment.ts`. Missing or malformed values will cause the application to fail fast with a descriptive error, so double-check your `.env` before launching.
+
+### Database Migrations
+
+Run database migrations before starting the app:
+
+```bash
+npm run migrate:nbu              # NBU bot database
+npm run migrate:react-clicker    # React Clicker DB (when the feature is enabled)
+```
+
+Use the corresponding `:undo` scripts to roll back the latest migration.
+
 ## Usage
 
 To start the project, run:

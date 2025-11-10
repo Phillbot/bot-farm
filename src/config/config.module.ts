@@ -3,15 +3,16 @@ import { ContainerModule } from 'inversify';
 import { ExpressApp } from '@server/express-server';
 import { PrettyTableCreator } from '@helpers/table-creator';
 import { GlobalUtils } from '@helpers/global-utils';
-import { Logger } from '@helpers/logger';
+import { LOG_LEVEL, Logger } from '@helpers/logger';
 
+import { environment } from './environment';
 import { ContactUrl, ENV, LogLevel, PORT } from './symbols';
 
 export const configModule = new ContainerModule((bind) => {
-  bind<string>(ENV.$).toConstantValue(process.env.ENV!);
-  bind<string>(PORT.$).toConstantValue(process.env.PORT!);
-  bind<string>(LogLevel.$).toConstantValue(process.env.LOG_LEVEL!);
-  bind<string>(ContactUrl.$).toConstantValue(process.env.CONTACT_URL!);
+  bind<string>(ENV.$).toConstantValue(environment.app.env);
+  bind<number>(PORT.$).toConstantValue(environment.app.port);
+  bind<LOG_LEVEL>(LogLevel.$).toConstantValue(environment.app.logLevel);
+  bind<string>(ContactUrl.$).toConstantValue(environment.app.contactUrl);
 
   bind<ExpressApp>(ExpressApp).toSelf();
   bind<PrettyTableCreator>(PrettyTableCreator).toSelf();

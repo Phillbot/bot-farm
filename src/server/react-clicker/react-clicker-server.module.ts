@@ -1,4 +1,6 @@
 import { ContainerModule, interfaces } from 'inversify';
+
+import { getReactClickerConfigOrThrow } from '@config/environment';
 import { ReactClickerBotRouter } from './react-clicker.router';
 import { TokenValidateMiddleware } from './middlewares/token-validate.middleware';
 import { AuthMiddleware } from './middlewares/auth.middleware';
@@ -17,7 +19,9 @@ import { SALT } from './symbols';
 // TODO: Create common serve module
 
 export const reactClickerServerModule = new ContainerModule((bind: interfaces.Bind) => {
-  bind<string>(SALT.$).toConstantValue(process.env.REACT_CLICKER_APP_SALT!);
+  const reactClickerConfig = getReactClickerConfigOrThrow();
+
+  bind<string>(SALT.$).toConstantValue(reactClickerConfig.salt);
   bind<ReactClickerBotRouter>(ReactClickerBotRouter).toSelf();
 
   bind<TokenValidateMiddleware>(TokenValidateMiddleware).toSelf();

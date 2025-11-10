@@ -1,5 +1,6 @@
 import { ContainerModule, interfaces } from 'inversify';
 import { LanguageCode } from 'grammy/types';
+import { environment } from '@config/environment';
 import {
   NBURateBotBarChartCommand,
   NBURateBotRateAllCommand,
@@ -31,16 +32,18 @@ import {
 import { NBUChartPeriod, NBURateBotChartBuilder } from './nbu-rate-chart-builder.service';
 
 export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
-  bind<string>(NbuBotToken.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_BOT_TOKEN!);
-  bind<string>(NbuBotApiUrl.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_API_URL!);
-  bind<string>(NbuBotApiUrlByDate.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL!);
-  bind<string>(NbuBotWebLink.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_WEB_LINK!);
-  bind<string>(NbuBotCurrencies.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_CURRENCIES!);
+  const nbuConfig = environment.nbu;
+
+  bind<string>(NbuBotToken.$).toConstantValue(nbuConfig.botToken);
+  bind<string>(NbuBotApiUrl.$).toConstantValue(nbuConfig.apiUrl);
+  bind<string>(NbuBotApiUrlByDate.$).toConstantValue(nbuConfig.apiUrlByDate);
+  bind<string>(NbuBotWebLink.$).toConstantValue(nbuConfig.webLink);
+  bind<string>(NbuBotCurrencies.$).toConstantValue(nbuConfig.currencies);
 
   // TODO: create cron module?
-  bind<string>(NbuBotCronTableSchema.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_CURRENCY_TABLE_CRON_SCHEMA!);
-  bind<string>(NbuBotCronChartSchema.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA!);
-  bind<string>(NbuBotCronTimezone.$).toConstantValue(process.env.NBU_RATE_EXCHANGE_CRON_TIMEZONE!);
+  bind<string>(NbuBotCronTableSchema.$).toConstantValue(nbuConfig.cronTableSchema);
+  bind<string>(NbuBotCronChartSchema.$).toConstantValue(nbuConfig.cronChartSchema);
+  bind<string>(NbuBotCronTimezone.$).toConstantValue(nbuConfig.cronTimezone);
 
   bind<LanguageCode[]>(NbuBotSupportedLangs.$).toConstantValue(supportedLangs);
   bind<LanguageCode>(NbuBotDefaultLang.$).toConstantValue(defaultLang);
