@@ -41,6 +41,7 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 | CONTACT_URL                                       | Any URL for server response in app start          | string                       |
 | NBU_RATE_EXCHANGE_BOT_TOKEN                       | Token for Nbu bot                                 | string                       |
 | NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_CONNECT_URL | PostgreSQL connection URL                         | string                       |
+| NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_PORT        | Optional override for the PostgreSQL port         | number (string)              |
 | NBU_RATE_EXCHANGE_API_URL                         | API URL for exchange rates                        | string                       |
 | NBU_RATE_EXCHANGE_WEB_LINK                        | Web link for NBU rate                             | string                       |
 | NBU_RATE_EXCHANGE_API_BY_DATE_AND_CURR_URL        | API URL for exchange rates by date and currency   | string                       |
@@ -53,6 +54,7 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 | REACT_CLICKER_APP_GAME_URL                        | URL for React Clicker bot game                    | string                       |
 | REACT_CLICKER_APP_SESSION_DURATION_S              | Session duration in seconds                       | string (converted to number) |
 | REACT_CLICKER_APP_BOT_TIME_ZONE                   | Timezone for React Clicker bot                    | string                       |
+| REACT_CLICKER_FEATURE_ENABLED                     | Enable React Clicker bot/API modules (`true`/`false`) | string                    |
 
 ## Usage
 

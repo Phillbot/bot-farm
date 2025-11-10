@@ -1,7 +1,9 @@
+import { URL } from 'url';
+
 import { inject, injectable } from 'inversify';
 import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
 
-import { LOG_LEVEL, Logger } from '@helpers/logger';
+import { Logger } from '@helpers/logger';
 import { LogLevel } from '@config/symbols';
 import { NbuBotPostgresConnectUrl } from '@database/symbols';
 
@@ -23,41 +25,9 @@ export class NBURateBotUser extends Model<InferAttributes<NBURateBotUser>, Infer
 
 @injectable()
 export class NBURateBotPostgresqlSequelize {
-  private readonly _connect = new Sequelize(this._nbuBotPostgresConnectUrl, {
-    logging: (msg) => this._logLevel !== LOG_LEVEL.NONE && this._logger.info(`[NBURateBotPostgresqlSequelize]: ${msg}`),
-    define: {
-      hooks: {},
-    },
-  });
+  private readonly _connect: Sequelize;
 
-  private readonly _user = NBURateBotUser.init(
-    {
-      user_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: false,
-        allowNull: false,
-      },
-      user_name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      is_subscribe_active: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-      },
-      lang: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-    },
-    {
-      schema: NBU_RATE_BOT_CONNECTION_DATA.SCHEMA_SUBSCRIBERS,
-      tableName: NBU_RATE_BOT_CONNECTION_DATA.TABLE_SUBSCRIBERS,
-      timestamps: false,
-      sequelize: this._connect,
-    },
-  );
+  private _user!: typeof NBURateBotUser;
 
   constructor(
     @inject(NbuBotPostgresConnectUrl.$)
@@ -66,19 +36,85 @@ export class NBURateBotPostgresqlSequelize {
     private readonly _logLevel: string,
     private readonly _logger: Logger,
   ) {
+    const connectionUrl = this.normalizeConnectionUrl(this._nbuBotPostgresConnectUrl);
+
+    this._connect = new Sequelize(connectionUrl, {
+      dialect: 'postgres',
+      logging: (msg) => this._logLevel !== 'none' && this._logger.info(`[NBURateBotPostgresqlSequelize]: ${msg}`),
+      dialectOptions: {
+        // Allow self-signed certificates in environments where the DB provides one.
+        // If you'd like stricter verification, make this conditional or remove it.
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
+    });
+
+    this._user = NBURateBotUser.init(
+      {
+        user_id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: false,
+          allowNull: false,
+        },
+        user_name: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        is_subscribe_active: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+        },
+        lang: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+      },
+      {
+        schema: NBU_RATE_BOT_CONNECTION_DATA.SCHEMA_SUBSCRIBERS,
+        tableName: NBU_RATE_BOT_CONNECTION_DATA.TABLE_SUBSCRIBERS,
+        timestamps: false,
+        sequelize: this._connect,
+      },
+    );
     // test connection
     this._connect
       .authenticate()
-      .then(() =>
+      .then(() => {
         this._logger.info({
           database: NBURateBotPostgresqlSequelize.name,
           ok: true,
-        }),
-      )
+        });
+        // Run sync to align DB schema after authentication succeeds.
+        return this._connect.sync({ alter: true });
+      })
+      .then(() => {
+        this._logger.info('Sequelize models synced!');
+      })
       .catch((error) => this._logger.error(error));
   }
 
   get user(): typeof NBURateBotUser {
     return this._user;
+  }
+
+  private normalizeConnectionUrl(connectionUrl: string): string {
+    try {
+      const parsedUrl = new URL(connectionUrl);
+
+      const port = process.env.NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_PORT;
+      if (port && parsedUrl.port !== port) {
+        parsedUrl.port = port;
+      }
+
+      parsedUrl.searchParams.delete('sslmode');
+
+      return parsedUrl.toString();
+    } catch (error) {
+      this._logger.error('[NBURateBotPostgresqlSequelize] Invalid PostgreSQL connection URL', error);
+      return connectionUrl;
+    }
   }
 }

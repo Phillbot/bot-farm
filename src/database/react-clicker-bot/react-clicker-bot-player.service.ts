@@ -101,32 +101,32 @@ export class ReactClickerBotPlayerService {
 
   public async getUserReferrals(user_id: number) {
     try {
-      // Шаг 1: Получаем все записи из таблицы referrals по user_id
+      // Step 1: fetch all referral records for the given user_id.
       const referrals = await this._reactClickerBotSequelize.referrals.findAll({
         where: { user_id },
-        attributes: ['referred_user_id', 'reward_claim'], // Извлекаем также поле reward_claim
+        attributes: ['referred_user_id', 'reward_claim'], // Include reward_claim to know whether the bonus was claimed.
       });
 
-      // Шаг 2: Извлекаем все referred_user_id из полученных записей
+      // Step 2: extract every referred_user_id from those records.
       const referredUserIds = referrals.map((referral) => referral.referred_user_id);
 
-      // Шаг 3: Получаем данные пользователей по их ID
+      // Step 3: fetch user data for each referred account.
       const referredUsers = await this._reactClickerBotSequelize.user.findAll({
         where: {
           user_id: referredUserIds,
         },
       });
 
-      // Шаг 4: Создаем массив объектов с информацией о пользователе и награде
+      // Step 4: compose an array with user info and the reward meta.
       const result = referredUsers.map((user) => {
         const referral = referrals.find((ref) => ref.referred_user_id === user.user_id);
         return {
           ...user.toJSON(),
-          reward_claim: referral?.reward_claim, // Добавляем информацию о получении награды
+          reward_claim: referral?.reward_claim, // Keep whether the reward was claimed in the response.
         };
       });
 
-      // Шаг 5: Возвращаем массив объектов пользователей с дополнительной информацией
+      // Step 5: return the enriched list.
       return result;
     } catch (error) {
       this._logger.error('Error fetching user referrals:', error);
@@ -312,8 +312,8 @@ export class ReactClickerBotPlayerService {
   public async updateReferrals(referralId: number, referredUserId: number): Promise<void> {
     try {
       await this._reactClickerBotSequelize.referrals.create({
-        user_id: referralId, // Кто пригласил
-        referred_user_id: referredUserId, // Кого пригласили
+        user_id: referralId, // Who sent the invite.
+        referred_user_id: referredUserId, // Who was invited.
         reward_claim: false,
       });
     } catch (error) {
@@ -338,7 +338,7 @@ export class ReactClickerBotPlayerService {
     const transaction = await this._reactClickerBotSequelize.sequelize.transaction();
 
     try {
-      // Шаг 1: Найти запись о реферале
+      // Step 1: locate the referral record.
       const referral = await this._reactClickerBotSequelize.referrals.findOne({
         where: { user_id, referred_user_id },
         transaction,
@@ -349,16 +349,16 @@ export class ReactClickerBotPlayerService {
         throw new Error('Referral not found');
       }
 
-      // Шаг 2: Проверить, была ли награда уже получена
+      // Step 2: check whether the reward is already claimed.
       if (referral.reward_claim) {
         throw new Error('Reward already claimed');
       }
 
-      // Шаг 3: Обновить статус награды на true
+      // Step 3: mark the reward as claimed.
       referral.reward_claim = true;
       await referral.save({ transaction });
 
-      // Шаг 4: Начислить +1000 баллов пользователю, который пригласил
+      // Step 4: grant +1000 points to the user who invited the friend.
       const user = await this._reactClickerBotSequelize.user.findOne({
         where: { user_id },
         transaction,
@@ -371,13 +371,13 @@ export class ReactClickerBotPlayerService {
       user.balance += 1000;
       await user.save({ transaction });
 
-      // Шаг 5: Закоммитить транзакцию
+      // Step 5: commit the transaction.
       await transaction.commit();
 
-      // Шаг 6: Получить обновленный список всех рефералов
+      // Step 6: fetch the updated referral list.
       const updatedReferrals = await this.getUserReferrals(user_id);
 
-      // Возвращаем новый баланс и обновленный список рефералов
+      // Return the new balance together with the updated referrals.
       return { balance: user.balance, referrals: updatedReferrals };
     } catch (error) {
       await transaction.rollback();

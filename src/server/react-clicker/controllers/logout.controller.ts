@@ -34,7 +34,7 @@ export class LogoutController extends BaseController {
 
       this.respondWithSuccess(res, { message: 'Logout successful' });
     } catch (error) {
-      // Приведение типа ошибки к Error или обработка как unknown
+      // Cast the unknown error to Error when possible for better logging context.
       if (error instanceof Error) {
         this._logger.error(`Error in LogoutController.handle: ${error.message}`, error);
       } else {

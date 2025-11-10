@@ -29,9 +29,16 @@ export class ReactClickerBotSequelize {
     private readonly _logger: Logger,
   ) {
     this._connect = new Sequelize(this._reactClickerPostgresConnectUrl, {
+      dialect: 'postgres',
       logging: (msg) => this._logLevel !== LOG_LEVEL.NONE && this._logger.info(`[ReactClickerBotSequelize]: ${msg}`),
       define: {
         hooks: {},
+      },
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
       },
     });
 

@@ -1,6 +1,6 @@
 import path from 'path';
 import express, { Application, Request, Response } from 'express';
-import { inject, injectable } from 'inversify';
+import { inject, injectable, optional } from 'inversify';
 import { Random } from 'some-random-cat';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
@@ -31,10 +31,12 @@ export class ExpressApp {
     private readonly _nbuRateBot: NBURateBot,
     private readonly _nbuRateBotChartJob: NBURateBotChartJob,
     private readonly _nbuRateBotDailyExchangesJob: NBURateBotDailyExchangesJob,
-    private readonly _reactClickerBot: ReactClickerBot,
     private readonly _globalUtils: GlobalUtils,
-    private readonly _reactClickerBotRouter: ReactClickerBotRouter,
     private readonly _logger: Logger,
+    @optional()
+    private readonly _reactClickerBot?: ReactClickerBot,
+    @optional()
+    private readonly _reactClickerBotRouter?: ReactClickerBotRouter,
   ) {
     this._app = express();
 
@@ -55,7 +57,7 @@ export class ExpressApp {
       headers: true,
     });
 
-    this._app.use(cors()); // TODO: Настроить CORS из .ENV
+    this._app.use(cors()); // TODO: Configure CORS via .env
     this._app.use(limiter);
     this._app.use(express.json());
     this._app.use(express.urlencoded({ extended: true }));
@@ -70,7 +72,9 @@ export class ExpressApp {
   private setupRoutes(): void {
     // 📌 API and bots
     this._app.use('/api', router);
-    this._app.use('/react-clicker-bot', this._reactClickerBotRouter.router);
+    if (this._reactClickerBotRouter) {
+      this._app.use('/react-clicker-bot', this._reactClickerBotRouter.router);
+    }
 
     // 📌 Main view route
     this._app.get('*', async (_: Request, res: Response) => {
@@ -78,8 +82,8 @@ export class ExpressApp {
         const cat = await Random.getCat();
         res.render('index', { cat: cat?.url, telegram: this._contactUrl });
       } catch (error) {
-        this._logger.error('Ошибка рендера страницы:', error);
-        res.status(500).send('Ошибка загрузки страницы');
+        this._logger.error('Failed to render the landing page:', error);
+        res.status(500).send('Unable to load the page');
       }
     });
 
@@ -101,7 +105,7 @@ export class ExpressApp {
           cat: cat?.url,
         });
       } catch (error) {
-        this._logger.error('Ошибка при запуске сервера:', error, { status: 'failed' });
+        this._logger.error('Failed to start the server:', error, { status: 'failed' });
       }
     });
   }
@@ -115,7 +119,9 @@ export class ExpressApp {
       this._nbuRateBot.botStart();
       this._nbuRateBotChartJob.start();
       this._nbuRateBotDailyExchangesJob.start();
-      // this._reactClickerBot.botStart();
+      if (this._reactClickerBot) {
+        this._reactClickerBot.botStart();
+      }
     } catch (error) {
       this._logger.error('Error during bot or job startup:', error);
     }
