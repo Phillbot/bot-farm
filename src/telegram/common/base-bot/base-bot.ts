@@ -1,89 +1,106 @@
 import { Bot, Composer, GrammyError, HttpError, session } from 'grammy';
-import { I18n } from '@grammyjs/i18n';
-import { LanguageCode } from 'grammy/types';
-import { emojiParser } from '@grammyjs/emoji';
+import { BotCommand, LanguageCode } from 'grammy/types';
 import { injectable } from 'inversify';
 
 import { Logger } from '@helpers/logger';
-import { BotContext, ICommand } from './types';
+
+import { emojiParser } from '@grammyjs/emoji';
+import { I18n } from '@grammyjs/i18n';
+
+import { BotContext, CommandDefinition } from './types';
+
+type SpecialCommandConfig = Readonly<{
+  userIds: number[];
+  commands: CommandDefinition[];
+}>;
+
+type SetCommandsOptions = Parameters<Bot<BotContext>['api']['setMyCommands']>[1];
+
+export type BaseBotConfig = Readonly<{
+  token: string;
+  defaultLocale: LanguageCode;
+  localesDir: string;
+  commands: CommandDefinition[];
+  supportedLangs: LanguageCode[];
+  logger: Logger;
+  specialCommands?: SpecialCommandConfig;
+}>;
 
 @injectable()
 export abstract class AbstractBaseBot<T extends BotContext> {
   protected readonly _bot: Bot<T>;
   protected readonly _composer: Composer<T>;
   protected readonly _i18n: I18n<T>;
+  protected readonly _logger: Logger;
+  private readonly _commandDefinitions: CommandDefinition[];
+  private readonly _supportedLangs: LanguageCode[];
+  private readonly _defaultLang: LanguageCode;
+  private readonly _specialCommands?: SpecialCommandConfig;
 
-  constructor(
-    token: string,
-    defaultLocale: LanguageCode,
-    localesDir: string,
-    private readonly _commandsMethodsConfig: Map<string, { instance: ICommand }>,
-    private readonly _commandsMenuConfig: Map<string, string>,
-    private readonly _supportedLangs: LanguageCode[],
-    private readonly _defaultLang: LanguageCode,
-    private readonly _logger: Logger,
-    private readonly _specialUserIds?: number[],
-    private readonly _specialCommandsMethodsConfig?: Map<string, { instance: ICommand }>,
-    private readonly _specialCommandsMenuConfig?: Map<string, string>,
-  ) {
+  constructor({ token, defaultLocale, localesDir, commands, supportedLangs, logger, specialCommands }: BaseBotConfig) {
     this._bot = new Bot<T>(token);
     this._composer = new Composer<T>();
     this._i18n = new I18n<T>({
-      defaultLocale: defaultLocale,
+      defaultLocale,
       useSession: true,
       directory: localesDir,
     });
+    this._commandDefinitions = commands;
+    this._supportedLangs = supportedLangs;
+    this._defaultLang = defaultLocale;
+    this._logger = logger;
+    this._specialCommands = specialCommands;
+
+    this.ensureUniqueCommands();
   }
 
   private registerCommands(): void {
-    for (const [command, { instance }] of this._commandsMethodsConfig.entries()) {
-      this._bot.command(command, (ctx) => instance.withCtx(ctx));
-      this._logger.info(`Registered command: ${command}`);
+    this._commandDefinitions.forEach((definition) => {
+      this._bot.command(definition.command, (ctx) => definition.handler.withCtx(ctx));
+      this._logger.info(`Registered command: ${definition.command}`);
+    });
+
+    if (!this._specialCommands) {
+      return;
     }
 
-    if (this._specialCommandsMethodsConfig) {
-      for (const [command, { instance }] of this._specialCommandsMethodsConfig.entries()) {
-        this._bot.command(command, (ctx) => {
-          if (this._specialUserIds?.includes(ctx.from?.id ?? -1)) {
-            instance.withCtx(ctx);
-            this._logger.info(`Registered special command for user: ${ctx.from?.id}`);
-          }
-        });
-      }
-    }
+    const allowedUsers = new Set(this._specialCommands.userIds);
+
+    this._specialCommands.commands.forEach((definition) => {
+      this._bot.command(definition.command, (ctx) => {
+        if (!ctx.from?.id || !allowedUsers.has(ctx.from.id)) {
+          return;
+        }
+
+        definition.handler.withCtx(ctx);
+        this._logger.info(`Registered special command: ${definition.command} for user: ${ctx.from.id}`);
+      });
+    });
   }
 
   private async setCommandsMenu(): Promise<void> {
     await Promise.all(
       this._supportedLangs.map(async (lang) => {
-        await this._bot.api.setMyCommands(
-          [...this._commandsMenuConfig.entries()].map(([command, translateKey]) => ({
-            command,
-            description: this._i18n.t(lang, translateKey),
-          })),
-          { language_code: lang === this._defaultLang ? undefined : lang },
-        );
-        this._logger.info(`Set commands menu for language: ${lang}`);
+        const commands = this.buildMenuPayload(lang, this._commandDefinitions);
+        await this.safeSetCommands(commands, {
+          language_code: lang === this._defaultLang ? undefined : lang,
+        });
       }),
     );
 
-    if (this._specialUserIds && this._specialCommandsMenuConfig) {
-      for (const userId of this._specialUserIds) {
-        for (const lang of this._supportedLangs) {
-          const allCommands = [...this._commandsMenuConfig.entries(), ...this._specialCommandsMenuConfig.entries()].map(
-            ([command, translateKey]) => ({
-              command,
-              description: this._i18n.t(lang, translateKey),
-            }),
-          );
+    if (!this._specialCommands) {
+      return;
+    }
 
-          await this._bot.api.setMyCommands(allCommands, {
-            language_code: lang === this._defaultLang ? undefined : lang,
-            scope: { type: 'chat', chat_id: userId },
-          });
+    const combinedDefinitions = [...this._commandDefinitions, ...this._specialCommands.commands];
 
-          this._logger.info(`Set special commands menu for user: ${userId} and language: ${lang}`);
-        }
+    for (const userId of this._specialCommands.userIds) {
+      for (const lang of this._supportedLangs) {
+        const commands = this.buildMenuPayload(lang, combinedDefinitions);
+        await this.safeSetCommands(commands, {
+          language_code: lang === this._defaultLang ? undefined : lang,
+          scope: { type: 'chat', chat_id: userId },
+        });
       }
     }
   }
@@ -107,7 +124,7 @@ export abstract class AbstractBaseBot<T extends BotContext> {
     this.errorHandler();
   }
 
-  protected additionalMiddlewares(): void {}
+  protected additionalMiddlewares(): void { }
 
   protected async initBot(): Promise<void> {
     await this.setCommandsMenu();
@@ -132,9 +149,9 @@ export abstract class AbstractBaseBot<T extends BotContext> {
 
     this.additionalMiddlewares();
 
-    this.initBot();
     this.registerCommands();
     this.handleError();
+    void this.initBot().catch((error) => this._logger.error(`Failed to initialize bot ${this.constructor.name}`, error));
   }
 
   public get bot(): Bot<T> {
@@ -143,5 +160,51 @@ export abstract class AbstractBaseBot<T extends BotContext> {
 
   public get i18n(): I18n<T> {
     return this._i18n;
+  }
+
+  private ensureUniqueCommands(): void {
+    const names = new Set<string>();
+    const duplicates = new Set<string>();
+
+    const registerName = (command: string) => {
+      if (names.has(command)) {
+        duplicates.add(command);
+      } else {
+        names.add(command);
+      }
+    };
+
+    this._commandDefinitions.forEach(({ command }) => registerName(command));
+    this._specialCommands?.commands.forEach(({ command }) => registerName(command));
+
+    if (duplicates.size > 0) {
+      throw new Error(
+        `Duplicate bot commands detected: ${Array.from(duplicates)
+          .sort()
+          .join(', ')}`,
+      );
+    }
+  }
+
+  private buildMenuPayload(lang: LanguageCode, definitions: CommandDefinition[]): BotCommand[] {
+    return definitions.map(({ command, descriptionKey }) => ({
+      command,
+      description: this._i18n.t(lang, descriptionKey),
+    }));
+  }
+
+  private async safeSetCommands(commands: BotCommand[], options?: SetCommandsOptions): Promise<void> {
+    const appliedOptions = options ?? {};
+    try {
+      await this._bot.api.setMyCommands(commands, appliedOptions);
+      this._logger.info(
+        `Set commands menu for language: ${appliedOptions.language_code ?? this._defaultLang}${appliedOptions.scope ? `, scope: ${appliedOptions.scope.type}` : ''}`,
+      );
+    } catch (error) {
+      this._logger.error(
+        `Failed to set commands menu for language: ${appliedOptions.language_code ?? this._defaultLang}`,
+        error,
+      );
+    }
   }
 }
