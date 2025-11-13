@@ -1,7 +1,16 @@
 import crypto from 'crypto';
-import { injectable } from 'inversify';
+
 import { CommandContext, Context, InlineKeyboard } from 'grammy';
-import { ForceReply, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove } from 'grammy/types';
+import {
+  ForceReply,
+  InlineKeyboardMarkup,
+  ParseMode,
+  ReplyKeyboardMarkup,
+  ReplyKeyboardRemove,
+} from 'grammy/types';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
 
 import { Logger } from '@helpers/logger';
 import assertNever from '@helpers/utils';
@@ -52,7 +61,10 @@ export class TelegramUtils {
    * is error handling in one place
    */
 
-  constructor(private readonly _logger: Logger) {}
+  constructor(
+    @inject(LoggerToken.$)
+    private readonly _logger: Logger,
+  ) { }
 
   public async sendReply<T extends Context>({ ctx, text, parse_mode, reply_markup }: ReplyType<T>): Promise<void> {
     try {
@@ -115,8 +127,8 @@ export class TelegramUtils {
       clientDataKeys.sort();
       clientDataKeys.forEach((v, k) => k !== 'hash' && dataToCheck.push(`${k}=${v}`));
 
-      const secret = crypto.createHmac('sha256', 'WebAppData').update(token);
-      const signature = crypto.createHmac('sha256', secret.digest()).update(dataToCheck.join('\n'));
+      const secret = crypto.createHmac('sha256', 'WebAppData').update(token).digest('hex');
+      const signature = crypto.createHmac('sha256', secret).update(dataToCheck.join('\n'));
       const referenceHash = signature.digest('hex');
 
       return referenceHash === hashFromClient;

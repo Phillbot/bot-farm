@@ -1,8 +1,10 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Cell, PrettyTable } from 'prettytable.js';
 
+import { LoggerToken } from '@config/symbols';
+
+import { GlobalUtils } from '@helpers/global-utils';
 import { Logger } from '@helpers/logger';
-import { GlobalUtils } from './global-utils';
 
 export type PrettyTableHeaderKeysType<T> = Readonly<Map<Partial<keyof T>, string>>;
 
@@ -26,8 +28,9 @@ type TableBuilderType<T> = Readonly<{
 export class PrettyTableCreator {
   constructor(
     private readonly _globalUtils: GlobalUtils,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
-  ) {}
+  ) { }
 
   /**
    * Builds a PrettyTable with or without headers based on the provided properties.

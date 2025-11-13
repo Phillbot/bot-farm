@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { ContainerModule, interfaces } from 'inversify';
+
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 
 import { LocalesDir } from './symbols';
