@@ -1,8 +1,9 @@
+import { Context, SessionFlavor } from 'grammy';
+import { LanguageCode } from 'grammy/types';
+
 import { EmojiFlavor } from '@grammyjs/emoji';
 import { I18nFlavor } from '@grammyjs/i18n';
 import { SessionData } from '@telegram/common/base-bot';
-import { Context, SessionFlavor } from 'grammy';
-import { LanguageCode } from 'grammy/types';
 
 export enum COMMANDS {
   START = 'start',
