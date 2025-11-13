@@ -1,24 +1,28 @@
+import { CronJob } from 'cron';
 import { inject, injectable } from 'inversify';
 import { PrettyTable } from 'prettytable.js';
-import { CronJob } from 'cron';
 
-import { NBUCurrencyBotUserService } from '@database';
+import { defaultTimeZone } from '@config/date.config';
+import { LoggerToken } from '@config/symbols';
+
+import { CronStatusRegistry } from '@helpers/cron-status.registry';
 import { Logger } from '@helpers/logger';
 import { PrettyTableCreator } from '@helpers/table-creator';
-import { defaultTimeZone } from '@config/date.config';
 
+import { NBUCurrencyBotUserService } from '@database';
 import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBURateBotUtils, NBURateType, defaultLang, mainCurrencies } from '@telegram/nbu-rate-bot/nbu-rate.utils';
-import { NbuBotCronTableSchema, NbuBotCronTimezone, NbuBotWebLink } from '@telegram/nbu-rate-bot/symbols';
+import { NbuBotCronConfigSymbol, NbuBotWebLink } from '@telegram/nbu-rate-bot/symbols';
+import { NbuBotCronConfig } from '@telegram/nbu-rate-bot/types';
+
+const NBU_DAILY_CRON_NAME = 'nbuDailyExchanges';
 
 @injectable()
 export class NBURateBotDailyExchangesJob {
   constructor(
-    @inject(NbuBotCronTimezone.$)
-    private readonly _nbuBotCronTimezone: string,
-    @inject(NbuBotCronTableSchema.$)
-    private readonly _nbuBotCronTableSchema: string,
+    @inject(NbuBotCronConfigSymbol.$)
+    private readonly _nbuBotCronConfig: NbuBotCronConfig,
     @inject(NbuBotWebLink.$)
     private readonly _nbuBotWebLink: string,
     private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
@@ -26,13 +30,16 @@ export class NBURateBotDailyExchangesJob {
     private readonly _nbuRateBot: NBURateBot,
     private readonly _nbuRateBotUtils: NBURateBotUtils,
     private readonly _telegramUtils: TelegramUtils,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
-  ) {}
+    private readonly _cronStatusRegistry: CronStatusRegistry,
+  ) { }
 
-  private exchangeTableSender() {
-    return CronJob.from({
-      cronTime: this._nbuBotCronTableSchema,
+  private exchangeTableSender(): CronJob {
+    const job = CronJob.from({
+      cronTime: this._nbuBotCronConfig.tableSchedule,
       onTick: async () => {
+        this._cronStatusRegistry.markTick(NBU_DAILY_CRON_NAME);
         const subscribersUserIds = await this._nbuCurrencyBotUserService.getSubscribersUserIds();
 
         if (subscribersUserIds?.length) {
@@ -76,8 +83,13 @@ export class NBURateBotDailyExchangesJob {
           Promise.all(tasks).catch((e) => this._logger.error(e));
         }
       },
-      timeZone: this._nbuBotCronTimezone ?? defaultTimeZone,
-    }).start();
+      timeZone: this._nbuBotCronConfig.timezone ?? defaultTimeZone,
+    });
+
+    job.start();
+    this._cronStatusRegistry.setRunning(NBU_DAILY_CRON_NAME, job.running);
+
+    return job;
   }
 
   private async buildTable(lang: string): Promise<PrettyTable> {

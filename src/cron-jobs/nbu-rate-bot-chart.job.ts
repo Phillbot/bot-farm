@@ -1,25 +1,28 @@
-import { inject, injectable } from 'inversify';
 import { CronJob } from 'cron';
 import { InputFile } from 'grammy';
+import { inject, injectable } from 'inversify';
+
+import { defaultTimeZone } from '@config/date.config';
+import { LoggerToken } from '@config/symbols';
+
+import { CronStatusRegistry } from '@helpers/cron-status.registry';
+import { Logger } from '@helpers/logger';
 
 import { NBUCurrencyBotUserService } from '@database';
-
-import { Logger } from '@helpers/logger';
-import { defaultTimeZone } from '@config/date.config';
-
 import { NBURateBot } from '@telegram';
 import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { NbuBotCronChartSchema, NbuBotCronTimezone } from '@telegram/nbu-rate-bot/symbols';
 import { NBUChartPeriod, NBURateBotChartBuilder } from '@telegram/nbu-rate-bot/nbu-rate-chart-builder.service';
 import { defaultLang } from '@telegram/nbu-rate-bot/nbu-rate.utils';
+import { NbuBotCronConfigSymbol } from '@telegram/nbu-rate-bot/symbols';
+import { NbuBotCronConfig } from '@telegram/nbu-rate-bot/types';
+
+const NBU_CHART_CRON_NAME = 'nbuChartJob';
 
 @injectable()
 export class NBURateBotChartJob {
   constructor(
-    @inject(NbuBotCronChartSchema.$)
-    private readonly _nbuBotCronChartSchema: string,
-    @inject(NbuBotCronTimezone.$)
-    private readonly _nbuBotCronTimezone: string,
+    @inject(NbuBotCronConfigSymbol.$)
+    private readonly _nbuBotCronConfig: NbuBotCronConfig,
     @inject('Factory<NBURateBotChartBuilder>')
     private _nbuRateBotChartBuilder: (
       startDate: string,
@@ -29,8 +32,10 @@ export class NBURateBotChartJob {
     private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
     private readonly _nbuRateBot: NBURateBot,
     private readonly _telegramUtils: TelegramUtils,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
-  ) {}
+    private readonly _cronStatusRegistry: CronStatusRegistry,
+  ) { }
 
   private useBotChartBuilderFactory() {
     const { startDate, endDate } = this.dateConfig;
@@ -39,10 +44,11 @@ export class NBURateBotChartJob {
     return instance.build();
   }
 
-  private chartSenderJob(): void {
-    return CronJob.from({
-      cronTime: this._nbuBotCronChartSchema,
+  private chartSenderJob(): CronJob {
+    const job = CronJob.from({
+      cronTime: this._nbuBotCronConfig.chartSchedule,
       onTick: async () => {
+        this._cronStatusRegistry.markTick(NBU_CHART_CRON_NAME);
         const subscribersUserIds = await this._nbuCurrencyBotUserService.getSubscribersUserIds();
 
         if (subscribersUserIds?.length) {
@@ -73,8 +79,13 @@ export class NBURateBotChartJob {
           Promise.all(tasks).catch((e) => this._logger.error(e));
         }
       },
-      timeZone: this._nbuBotCronTimezone ?? defaultTimeZone,
-    }).start();
+      timeZone: this._nbuBotCronConfig.timezone ?? defaultTimeZone,
+    });
+
+    job.start();
+    this._cronStatusRegistry.setRunning(NBU_CHART_CRON_NAME, job.running);
+
+    return job;
   }
 
   private createCaption(lang: string): string {
