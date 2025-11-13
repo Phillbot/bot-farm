@@ -1,12 +1,13 @@
 import { ContainerModule } from 'inversify';
 
-import { ExpressApp } from '@server/express-server';
-import { PrettyTableCreator } from '@helpers/table-creator';
+import { CronStatusRegistry } from '@helpers/cron-status.registry';
 import { GlobalUtils } from '@helpers/global-utils';
 import { LOG_LEVEL, Logger } from '@helpers/logger';
+import { PrettyTableCreator } from '@helpers/table-creator';
 
 import { environment } from './environment';
-import { ContactUrl, ENV, LogLevel, PORT } from './symbols';
+import type { RequestLimitConfig } from './environment';
+import { ContactUrl, ENV, LogLevel, LoggerToken, PORT, RequestLimitConfigSymbol } from './symbols';
 
 export const configModule = new ContainerModule((bind) => {
   bind<string>(ENV.$).toConstantValue(environment.app.env);
@@ -14,8 +15,9 @@ export const configModule = new ContainerModule((bind) => {
   bind<LOG_LEVEL>(LogLevel.$).toConstantValue(environment.app.logLevel);
   bind<string>(ContactUrl.$).toConstantValue(environment.app.contactUrl);
 
-  bind<ExpressApp>(ExpressApp).toSelf();
   bind<PrettyTableCreator>(PrettyTableCreator).toSelf();
   bind<GlobalUtils>(GlobalUtils).toSelf();
-  bind<Logger>(Logger).toSelf();
+  bind<Logger>(LoggerToken.$).to(Logger).inSingletonScope();
+  bind<RequestLimitConfig>(RequestLimitConfigSymbol.$).toConstantValue(environment.app.requestLimit);
+  bind<CronStatusRegistry>(CronStatusRegistry).toSelf();
 });

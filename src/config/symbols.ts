@@ -13,3 +13,11 @@ export namespace PORT {
 export namespace ContactUrl {
   export const $ = Symbol.for('CONTACT_URL');
 }
+
+export namespace LoggerToken {
+  export const $ = Symbol.for('LOGGER');
+}
+
+export namespace RequestLimitConfigSymbol {
+  export const $ = Symbol.for('REQUEST_LIMIT_CONFIG');
+}

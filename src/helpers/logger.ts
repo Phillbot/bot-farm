@@ -1,5 +1,7 @@
-import { LogLevel } from '@config/symbols';
+import pino, { Logger as PinoLogger, LoggerOptions } from 'pino';
 import { inject, injectable } from 'inversify';
+
+import { LogLevel } from '@config/symbols';
 
 export enum LOG_LEVEL {
   FULL = 'FULL',
@@ -7,36 +9,50 @@ export enum LOG_LEVEL {
   NONE = 'NONE',
 }
 
-export enum LOG_TYPE {
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-  DEBUG = 'DEBUG',
-}
-
-// TODO: Make symbol for dynamically logger injections
-
 @injectable()
 export class Logger {
+  private readonly _pino: PinoLogger;
+  private readonly _isPretty: boolean;
+
   constructor(
     @inject(LogLevel.$)
     private readonly _logLevel: LOG_LEVEL,
-  ) {}
+  ) {
+    this._isPretty = Logger.shouldUsePretty();
+
+    const options: LoggerOptions = {
+      level: Logger.mapLevel(_logLevel),
+      base: undefined,
+      timestamp: this._isPretty ? false : pino.stdTimeFunctions.isoTime,
+      formatters: {
+        level(label) {
+          return { level: label.toUpperCase() };
+        },
+      },
+    };
+
+    const transport = Logger.createTransport(this._isPretty);
+    if (transport) {
+      options.transport = transport;
+    }
+
+    this._pino = pino(options);
+  }
 
   info(message: string | object, ...optionalParams: any[]): void {
-    this.log(LOG_TYPE.INFO, message, ...optionalParams);
+    this._pino.info(message, ...optionalParams);
   }
 
   warn(message: string | object, ...optionalParams: any[]): void {
-    this.log(LOG_TYPE.WARN, message, ...optionalParams);
+    this._pino.warn(message, ...optionalParams);
   }
 
   error(message: string | object, ...optionalParams: any[]): void {
-    this.log(LOG_TYPE.ERROR, message, ...optionalParams);
+    this._pino.error(message, ...optionalParams);
   }
 
   debug(message: string | object, ...optionalParams: any[]): void {
-    this.log(LOG_TYPE.DEBUG, message, ...optionalParams);
+    this._pino.debug(message, ...optionalParams);
   }
 
   table(data: any, columns?: string[]): void {
@@ -51,53 +67,45 @@ export class Logger {
     }
   }
 
-  private log(type: LOG_TYPE, message: string | object, ...optionalParams: any[]): void {
-    if (this._logLevel === LOG_LEVEL.NONE) {
-      return;
-    }
-
-    const formatMessage = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
-
-    switch (type) {
-      case LOG_TYPE.INFO:
-        if (this._logLevel === LOG_LEVEL.FULL || this._logLevel === LOG_LEVEL.COMPACT) {
-          console.info(this.formatMessage(type, formatMessage), ...optionalParams);
-        }
-        break;
-      case LOG_TYPE.WARN:
-        if (this._logLevel === LOG_LEVEL.FULL || this._logLevel === LOG_LEVEL.COMPACT) {
-          console.warn(this.formatMessage(type, formatMessage), ...optionalParams);
-        }
-        break;
-      case LOG_TYPE.ERROR:
-        if (this._logLevel === LOG_LEVEL.FULL || this._logLevel === LOG_LEVEL.COMPACT) {
-          console.error(this.formatMessage(type, formatMessage), ...optionalParams);
-        }
-        break;
-      case LOG_TYPE.DEBUG:
-        if (this._logLevel === LOG_LEVEL.FULL) {
-          console.debug(this.formatMessage(type, formatMessage), ...optionalParams);
-        }
-        break;
+  private static mapLevel(level: LOG_LEVEL): LoggerOptions['level'] {
+    switch (level) {
+      case LOG_LEVEL.FULL:
+        return 'debug';
+      case LOG_LEVEL.COMPACT:
+        return 'info';
+      case LOG_LEVEL.NONE:
+        return 'silent';
+      default:
+        return 'info';
     }
   }
 
-  private formatMessage(level: LOG_TYPE, message: string): string {
-    const timestamp = new Date().toISOString();
+  private static shouldUsePretty(): boolean {
+    const explicitFlag = process.env.LOG_PRETTY?.toLowerCase();
+    if (explicitFlag === 'true' || explicitFlag === '1' || explicitFlag === 'yes') {
+      return true;
+    }
 
-    const getColor = () => {
-      switch (level) {
-        case LOG_TYPE.INFO:
-          return '\x1b[34m'; // Blue
-        case LOG_TYPE.WARN:
-          return '\x1b[33m'; // Yellow
-        case LOG_TYPE.ERROR:
-          return '\x1b[31m'; // Red
-        case LOG_TYPE.DEBUG:
-          return '\x1b[32m'; // Green
-      }
+    if (explicitFlag === 'false' || explicitFlag === '0' || explicitFlag === 'no') {
+      return false;
+    }
+
+    return process.env.NODE_ENV !== 'production';
+  }
+
+  private static createTransport(enabled: boolean): LoggerOptions['transport'] | undefined {
+    if (!enabled) {
+      return undefined;
+    }
+
+    return {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'SYS:standard',
+        singleLine: false,
+        ignore: 'pid,hostname',
+      },
     };
-
-    return `${getColor()}[${timestamp}] [${level}] ${message}\x1b[0m`; // Reset color
   }
 }
