@@ -1,8 +1,12 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Transaction } from 'sequelize';
+
+import { LoggerToken } from '@config/symbols';
+
 import { Logger } from '@helpers/logger';
-import { ActiveEnergyByUser, LastSession, User, UserAbility } from './react-clicker-bot.models';
+
 import { ReactClickerBotSequelize } from './react-clicker-bot.db';
+import { ActiveEnergyByUser, LastSession, User, UserAbility } from './react-clicker-bot.models';
 import {
   AbilityType,
   ExtendedUser,
@@ -16,8 +20,9 @@ import {
 export class ReactClickerBotPlayerService {
   constructor(
     private readonly _reactClickerBotSequelize: ReactClickerBotSequelize,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
-  ) {}
+  ) { }
 
   public async getUserById(user_id: number) {
     return this._reactClickerBotSequelize.user.findOne({ where: { user_id } });

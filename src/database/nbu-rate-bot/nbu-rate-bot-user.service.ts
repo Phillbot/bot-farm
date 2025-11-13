@@ -1,14 +1,18 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
+
+import { Logger } from '@helpers/logger';
 
 import { NBURateBotPostgresqlSequelize, NBURateBotUserType } from '@database';
-import { Logger } from '@helpers/logger';
 
 @injectable()
 export class NBUCurrencyBotUserService {
   constructor(
     private readonly _nbuRateBotPostgresqlSequelize: NBURateBotPostgresqlSequelize,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
-  ) {}
+  ) { }
 
   public async getUserById({ user_id }: Pick<NBURateBotUserType, 'user_id'>) {
     return this._nbuRateBotPostgresqlSequelize.user.findOne({ where: { user_id } }).catch((e) => this._logger.error(e));

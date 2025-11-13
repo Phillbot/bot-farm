@@ -1,5 +1,6 @@
-import { mapBot } from '@server/react-clicker/mappers/bot.mapper';
 import { CreationOptional } from 'sequelize';
+
+import { mapBot } from '@server/react-clicker/mappers/bot.mapper';
 
 import { ActiveEnergyByUser, Boost, LastSession, UserAbility } from './react-clicker-bot.models';
 
@@ -141,9 +142,9 @@ export function getEnergyRegenUpgradeCost(level: number): number {
 }
 
 export type AbilitiesMapping = {
-  clickCoastLevel: number;
+  clickCostLevel: number;
   energyLevel: number;
-  energyRegenirationLevel: number;
+  energyRegenLevel: number;
 };
 
 export type ActiveEnergyMapping = {
