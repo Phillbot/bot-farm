@@ -1,9 +1,14 @@
 import crypto from 'crypto';
-import { inject, injectable } from 'inversify';
+
 import { NextFunction, Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
+
+import { Logger } from '@helpers/logger';
 
 import { ReactClickerAppGameUrl } from '@telegram/react-clicker-bot/symbols';
-import { Logger } from '@helpers/logger';
+
 import { SALT } from '../symbols';
 
 @injectable()
@@ -17,6 +22,7 @@ export class TokenValidateMiddleware {
     private readonly _appGameUrl: string,
     @inject(SALT.$)
     private readonly _salt: string,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
   ) {
     this.handle = this.handle.bind(this);

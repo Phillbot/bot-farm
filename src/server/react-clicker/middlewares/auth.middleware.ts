@@ -1,10 +1,13 @@
-import { inject, injectable } from 'inversify';
 import { NextFunction, Request, Response } from 'express';
 import { User } from 'grammy/types';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
+
+import { Logger } from '@helpers/logger';
 
 import { ReactClickerBot } from '@telegram';
 import { ReactClickerSessionDuration } from '@telegram/react-clicker-bot/symbols';
-import { Logger } from '@helpers/logger';
 
 @injectable()
 export class AuthMiddleware {
@@ -12,6 +15,7 @@ export class AuthMiddleware {
     @inject(ReactClickerSessionDuration.$)
     private readonly _sessionDuration: string,
     private readonly _bot: ReactClickerBot,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
   ) {
     this.handle = this.handle.bind(this);
