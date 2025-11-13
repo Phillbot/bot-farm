@@ -1,6 +1,12 @@
-import { ContainerModule, interfaces } from 'inversify';
+import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from 'cron-jobs';
 import { LanguageCode } from 'grammy/types';
-import { environment } from '@config/environment';
+import { ContainerModule, interfaces } from 'inversify';
+
+import { getNbuConfigOrThrow } from '@config/environment';
+import { LoggerToken } from '@config/symbols';
+
+import { Logger } from '@helpers/logger';
+
 import {
   NBURateBotBarChartCommand,
   NBURateBotRateAllCommand,
@@ -11,28 +17,23 @@ import {
 } from '@telegram/nbu-rate-bot/commands';
 import { NBURateBotUtils } from '@telegram/nbu-rate-bot/nbu-rate.utils';
 
-import { Logger } from '@helpers/logger';
-
-import { NBURateBotChartJob, NBURateBotDailyExchangesJob } from 'cron-jobs';
-
+import { NBUChartPeriod, NBURateBotChartBuilder } from './nbu-rate-chart-builder.service';
 import { NBURateBot } from './nbu-rate.bot';
 import { defaultLang, supportedLangs } from './nbu-rate.utils';
 import {
   NbuBotApiUrl,
   NbuBotApiUrlByDate,
-  NbuBotCronChartSchema,
-  NbuBotCronTableSchema,
-  NbuBotCronTimezone,
+  NbuBotCronConfigSymbol,
   NbuBotCurrencies,
   NbuBotDefaultLang,
   NbuBotSupportedLangs,
   NbuBotToken,
   NbuBotWebLink,
 } from './symbols';
-import { NBUChartPeriod, NBURateBotChartBuilder } from './nbu-rate-chart-builder.service';
+import { NbuBotCronConfig } from './types';
 
 export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
-  const nbuConfig = environment.nbu;
+  const nbuConfig = getNbuConfigOrThrow();
 
   bind<string>(NbuBotToken.$).toConstantValue(nbuConfig.botToken);
   bind<string>(NbuBotApiUrl.$).toConstantValue(nbuConfig.apiUrl);
@@ -40,10 +41,11 @@ export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
   bind<string>(NbuBotWebLink.$).toConstantValue(nbuConfig.webLink);
   bind<string>(NbuBotCurrencies.$).toConstantValue(nbuConfig.currencies);
 
-  // TODO: create cron module?
-  bind<string>(NbuBotCronTableSchema.$).toConstantValue(nbuConfig.cronTableSchema);
-  bind<string>(NbuBotCronChartSchema.$).toConstantValue(nbuConfig.cronChartSchema);
-  bind<string>(NbuBotCronTimezone.$).toConstantValue(nbuConfig.cronTimezone);
+  bind<NbuBotCronConfig>(NbuBotCronConfigSymbol.$).toConstantValue({
+    tableSchedule: nbuConfig.cronTableSchema,
+    chartSchedule: nbuConfig.cronChartSchema,
+    timezone: nbuConfig.cronTimezone,
+  });
 
   bind<LanguageCode[]>(NbuBotSupportedLangs.$).toConstantValue(supportedLangs);
   bind<LanguageCode>(NbuBotDefaultLang.$).toConstantValue(defaultLang);
@@ -61,7 +63,7 @@ export const nbuRateBotModule = new ContainerModule((bind: interfaces.Bind) => {
     (ctx: interfaces.Context) => (startDate, endDate, period) =>
       new NBURateBotChartBuilder(
         ctx.container.get<string>(NbuBotCurrencies.$),
-        ctx.container.get<Logger>(Logger),
+        ctx.container.get<Logger>(LoggerToken.$),
         ctx.container.get<NBURateBotUtils>(NBURateBotUtils),
         startDate as string,
         endDate as string,

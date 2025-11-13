@@ -1,9 +1,13 @@
-import { inject, injectable } from 'inversify';
 import { LanguageCode } from 'grammy/types';
+import { inject, injectable } from 'inversify';
 
-import { AbstractBaseBot, ICommand } from '@telegram/common/base-bot';
-import { LocalesDir } from '@telegram/common/symbols';
+import { LoggerToken } from '@config/symbols';
+
 import { Logger } from '@helpers/logger';
+
+import { AbstractBaseBot } from '@telegram/common/base-bot';
+import { CommandDefinition } from '@telegram/common/base-bot/types';
+import { LocalesDir } from '@telegram/common/symbols';
 
 import {
   NBURateBotBarChartCommand,
@@ -24,20 +28,20 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
     @inject(LocalesDir.$) localesDir: string,
     @inject(NbuBotSupportedLangs.$) supportedLangs: LanguageCode[],
     @inject(NbuBotDefaultLang.$) defaultLang: LanguageCode,
+    @inject(LoggerToken.$) logger: Logger,
     nbuRateBotStartCommand: NBURateBotStartCommand,
     nbuRateBotRateAllCommand: NBURateBotRateAllCommand,
     nbuRateBotRateMainCommand: NBURateBotRateMainCommand,
     nbuRateBotSubscribeCommand: NBURateBotSubscribeCommand,
     nbuRateBotUnsubscribeCommand: NBURateBotUnsubscribeCommand,
     nbuRateBotBarYearChartCommand: NBURateBotBarChartCommand,
-    logger: Logger,
     private readonly _nbuRateBotUtils: NBURateBotUtils,
   ) {
-    super(
+    super({
       token,
-      defaultLang,
+      defaultLocale: defaultLang,
       localesDir,
-      NBURateBot.createCommandsMap(
+      commands: NBURateBot.createCommandDefinitions(
         nbuRateBotStartCommand,
         nbuRateBotRateAllCommand,
         nbuRateBotRateMainCommand,
@@ -45,40 +49,51 @@ export class NBURateBot extends AbstractBaseBot<NBURateBotContext> {
         nbuRateBotUnsubscribeCommand,
         nbuRateBotBarYearChartCommand,
       ),
-      NBURateBot.createDescriptorsMap(),
       supportedLangs,
-      defaultLang,
       logger,
-    );
+    });
   }
 
-  private static createCommandsMap(
+  private static createCommandDefinitions(
     startCommand: NBURateBotStartCommand,
     rateAllCommand: NBURateBotRateAllCommand,
     rateMainCommand: NBURateBotRateMainCommand,
     subscribeCommand: NBURateBotSubscribeCommand,
     unsubscribeCommand: NBURateBotUnsubscribeCommand,
     chartCommand: NBURateBotBarChartCommand,
-  ): Map<string, { instance: ICommand }> {
-    return new Map<string, { instance: ICommand }>([
-      [COMMANDS.START, { instance: startCommand }],
-      [COMMANDS.RATE, { instance: rateAllCommand }],
-      [COMMANDS.RATE_MAIN, { instance: rateMainCommand }],
-      [COMMANDS.SUBSCRIBE, { instance: subscribeCommand }],
-      [COMMANDS.UNSUBSCRIBE, { instance: unsubscribeCommand }],
-      [COMMANDS.CHART, { instance: chartCommand }],
-    ]);
-  }
-
-  private static createDescriptorsMap(): Map<string, string> {
-    return new Map<string, string>([
-      [COMMANDS.START, 'nbu-exchange-bot-start-command-descriptor'],
-      [COMMANDS.RATE, 'nbu-exchange-bot-rate-command-descriptor'],
-      [COMMANDS.RATE_MAIN, 'nbu-exchange-bot-rate-main-command-descriptor'],
-      [COMMANDS.SUBSCRIBE, 'nbu-exchange-bot-subscribe-command-descriptor'],
-      [COMMANDS.UNSUBSCRIBE, 'nbu-exchange-bot-unsubscribe-command-descriptor'],
-      [COMMANDS.CHART, 'nbu-exchange-bot-chart-command-descriptor'],
-    ]);
+  ): CommandDefinition[] {
+    return [
+      {
+        command: COMMANDS.START,
+        handler: startCommand,
+        descriptionKey: 'nbu-exchange-bot-start-command-descriptor',
+      },
+      {
+        command: COMMANDS.RATE,
+        handler: rateAllCommand,
+        descriptionKey: 'nbu-exchange-bot-rate-command-descriptor',
+      },
+      {
+        command: COMMANDS.RATE_MAIN,
+        handler: rateMainCommand,
+        descriptionKey: 'nbu-exchange-bot-rate-main-command-descriptor',
+      },
+      {
+        command: COMMANDS.SUBSCRIBE,
+        handler: subscribeCommand,
+        descriptionKey: 'nbu-exchange-bot-subscribe-command-descriptor',
+      },
+      {
+        command: COMMANDS.UNSUBSCRIBE,
+        handler: unsubscribeCommand,
+        descriptionKey: 'nbu-exchange-bot-unsubscribe-command-descriptor',
+      },
+      {
+        command: COMMANDS.CHART,
+        handler: chartCommand,
+        descriptionKey: 'nbu-exchange-bot-chart-command-descriptor',
+      },
+    ];
   }
 
   protected additionalMiddlewares(): void {

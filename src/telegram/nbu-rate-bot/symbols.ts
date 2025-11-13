@@ -26,14 +26,6 @@ export namespace NbuBotCurrencies {
   export const $ = Symbol.for('NBU_RATE_EXCHANGE_CURRENCIES');
 }
 
-export namespace NbuBotCronTableSchema {
-  export const $ = Symbol.for('NBU_RATE_EXCHANGE_CURRENCY_TABLE_CRON_SCHEMA');
-}
-
-export namespace NbuBotCronChartSchema {
-  export const $ = Symbol.for('NBU_RATE_EXCHANGE_CHART_CRON_SCHEMA');
-}
-
-export namespace NbuBotCronTimezone {
-  export const $ = Symbol.for('NBU_RATE_EXCHANGE_CRON_TIMEZONE');
+export namespace NbuBotCronConfigSymbol {
+  export const $ = Symbol.for('NBU_RATE_EXCHANGE_BOT_CRON_CONFIG');
 }
