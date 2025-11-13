@@ -39,6 +39,9 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 | LOG_LEVEL                                         | Setup logger                                      | FULL \| COMPACT \| NONE      |
 | PORT                                              | App port                                          | number                       |
 | CONTACT_URL                                       | Any URL for server response in app start          | string                       |
+| REQUEST_LIMIT_WINDOW_MS                           | Request limit window size in milliseconds         | number (default 60000)       |
+| REQUEST_LIMIT_MAX                                 | Maximum requests per IP per window                | number (default 100)         |
+| ENABLED_BOTS                                      | Comma-separated bot identifiers to enable (`nbu`, `react_clicker`). Defaults to `nbu`. | string          |
 | NBU_RATE_EXCHANGE_BOT_TOKEN                       | Token for Nbu bot                                 | string                       |
 | NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_CONNECT_URL | PostgreSQL connection URL                         | string                       |
 | NBU_RATE_EXCHANGE_POSTGRESQL_DATABASE_PORT        | Optional override for the PostgreSQL port         | number (string)              |
@@ -54,9 +57,8 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 | REACT_CLICKER_APP_GAME_URL                        | URL for React Clicker bot game                    | string                       |
 | REACT_CLICKER_APP_SESSION_DURATION_S              | Session duration in seconds                       | string (converted to number) |
 | REACT_CLICKER_APP_BOT_TIME_ZONE                   | Timezone for React Clicker bot                    | string                       |
-| REACT_CLICKER_FEATURE_ENABLED                     | Enable React Clicker bot/API modules (`true`/`false`) | string                    |
 
-> **Note:** all variables are validated on startup via `src/config/environment.ts`. Missing or malformed values will cause the application to fail fast with a descriptive error, so double-check your `.env` before launching.
+> **Note:** all variables are validated on startup via `src/config/environment.ts`. Missing or malformed values will cause the application to fail fast with a descriptive error, so double-check your `.env` before launching. Bots that are not listed in `ENABLED_BOTS` are skipped entirely (including their env validation and migrations).
 
 ### Database Migrations
 
@@ -64,17 +66,27 @@ Run database migrations before starting the app:
 
 ```bash
 npm run migrate:nbu              # NBU bot database
-npm run migrate:react-clicker    # React Clicker DB (when the feature is enabled)
+npm run migrate:react-clicker    # React Clicker DB (when `react_clicker` is enabled)
 ```
 
 Use the corresponding `:undo` scripts to roll back the latest migration.
 
 ## Usage
 
-To start the project, run:
+Start the HTTP server (Express + routes):
 
 ```bash
 npm start
+```
+
+Background workers and Telegram bots now run via separate entrypoints:
+
+```bash
+npm run start:all               # Start Express + both bots in a single process
+npm run start:nbu-bot             # NBU Rate bot + its cron jobs
+npm run start:react-clicker-bot   # React Clicker bot (only when `react_clicker` is enabled)
+npm run start:dev                 # Express only (ts-node + nodemon)
+npm run start:dev:all             # Express + bots in one ts-node dev process
 ```
 
 ## Project Structure
@@ -120,7 +132,7 @@ This project is licensed under the MIT License.
 **_TODO_**
 
 - [x] **Remove consoles, add logger**: Replace all `console` statements with proper logging using the logger module.
-- [ ] **Limit requests**: Implement request limiting to prevent abuse.
+- [x] **Limit requests**: Implement request limiting to prevent abuse.
 - [ ] **Connect JIRA**: Integrate JIRA for project management and issue tracking.
 - [ ] **Queue + Redis**: Implement a queuing system with Redis for better task management and performance.
 - [ ] **Move under express control**: Manage the bot under Express for more flexible server actions (webhooks, etc.).
