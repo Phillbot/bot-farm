@@ -1,8 +1,8 @@
 import { CommandContext } from 'grammy';
 import { injectable } from 'inversify';
 
-import { TelegramUtils } from '@telegram/common/telegram-utils';
 import { NBUCurrencyBotUserService } from '@database';
+import { TelegramUtils } from '@telegram/common/telegram-utils';
 
 import { NBURateBotContext, defaultLang } from '../nbu-rate.utils';
 
@@ -11,7 +11,7 @@ export class NBURateBotStartCommand {
   constructor(
     private readonly _nbuCurrencyBotUserService: NBUCurrencyBotUserService,
     private readonly _telegramUtils: TelegramUtils,
-  ) {}
+  ) { }
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     if (!ctx.from?.id) {

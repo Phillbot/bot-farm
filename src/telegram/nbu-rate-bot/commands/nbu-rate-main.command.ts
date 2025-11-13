@@ -1,8 +1,9 @@
-import { inject, injectable } from 'inversify';
 import { CommandContext } from 'grammy';
+import { inject, injectable } from 'inversify';
+
+import { PrettyTableCreator } from '@helpers/table-creator';
 
 import { TelegramUtils } from '@telegram/common/telegram-utils';
-import { PrettyTableCreator } from '@helpers/table-creator';
 
 import { NBURateBotContext, NBURateBotUtils, NBURateType, mainCurrencies } from '../nbu-rate.utils';
 import { NbuBotWebLink } from '../symbols';
@@ -15,7 +16,7 @@ export class NBURateBotRateMainCommand {
     private readonly _nbuRateBotUtils: NBURateBotUtils,
     private readonly _telegramUtils: TelegramUtils,
     private readonly _prettyTableCreator: PrettyTableCreator,
-  ) {}
+  ) { }
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
     const { data } = await this._nbuRateBotUtils.getNBUExchangeRate();

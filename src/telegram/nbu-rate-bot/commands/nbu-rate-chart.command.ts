@@ -1,10 +1,10 @@
-import { inject, injectable } from 'inversify';
 import { CommandContext, InputFile } from 'grammy';
+import { inject, injectable } from 'inversify';
 
 import { defaultTimeZone } from '@config/date.config';
 
-import { NBURateBotContext } from '../nbu-rate.utils';
 import { NBUChartPeriod, NBURateBotChartBuilder } from '../nbu-rate-chart-builder.service';
+import { NBURateBotContext } from '../nbu-rate.utils';
 
 @injectable()
 export class NBURateBotBarChartCommand {
@@ -15,20 +15,17 @@ export class NBURateBotBarChartCommand {
       endDate: string,
       type: NBUChartPeriod,
     ) => NBURateBotChartBuilder,
-  ) {}
+  ) { }
 
   private useBotChartBuilderFactory() {
-    const startDate = new Date(new Date().toLocaleString('en-US', { timeZone: defaultTimeZone }));
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: defaultTimeZone }));
+    const endDate = new Date(now);
+    const startDate = new Date(now);
     startDate.setFullYear(startDate.getFullYear() - 1);
-    startDate.setMonth(startDate.getMonth() - 1);
-    const formattedStartDate = startDate.toISOString().slice(0, 10).replace(/-/g, '');
 
-    const endDate = new Date(new Date().toLocaleString('en-US', { timeZone: defaultTimeZone }));
-    endDate.setMonth(0);
-    endDate.setDate(1);
-    const formattedEndDate = endDate.toISOString().slice(0, 10).replace(/-/g, '');
+    const formatDate = (date: Date) => date.toISOString().slice(0, 10).replace(/-/g, '');
 
-    return this._nbuRateBotChartBuilder(formattedStartDate, formattedEndDate, 'year').build();
+    return this._nbuRateBotChartBuilder(formatDate(startDate), formatDate(endDate), 'year').build();
   }
 
   public async withCtx(ctx: CommandContext<NBURateBotContext>): Promise<void> {
