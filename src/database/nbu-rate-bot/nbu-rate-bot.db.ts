@@ -1,10 +1,19 @@
 import { URL } from 'url';
 
 import { inject, injectable, optional } from 'inversify';
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from 'sequelize';
+import {
+  CreationOptional,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  Sequelize,
+} from 'sequelize';
+
+import { LogLevel, LoggerToken } from '@config/symbols';
 
 import { Logger } from '@helpers/logger';
-import { LogLevel } from '@config/symbols';
+
 import { NbuBotPostgresConnectUrl, NbuBotPostgresPort } from '@database/symbols';
 
 enum NBU_RATE_BOT_CONNECTION_DATA {
@@ -34,6 +43,7 @@ export class NBURateBotPostgresqlSequelize {
     private readonly _nbuBotPostgresConnectUrl: string,
     @inject(LogLevel.$)
     private readonly _logLevel: string,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
     @inject(NbuBotPostgresPort.$)
     @optional()
@@ -115,5 +125,9 @@ export class NBURateBotPostgresqlSequelize {
       this._logger.error('[NBURateBotPostgresqlSequelize] Invalid PostgreSQL connection URL', error);
       return connectionUrl;
     }
+  }
+
+  async ping(): Promise<void> {
+    await this._connect.authenticate();
   }
 }

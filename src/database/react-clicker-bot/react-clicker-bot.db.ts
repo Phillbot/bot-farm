@@ -1,10 +1,12 @@
 import { inject, injectable } from 'inversify';
 import { Sequelize } from 'sequelize';
 
-import { LogLevel } from '@config/symbols';
+import { LogLevel, LoggerToken } from '@config/symbols';
+
 import { LOG_LEVEL, Logger } from '@helpers/logger';
 
 import { ReactClickerPostgresConnectUrl } from '@database/symbols';
+
 import {
   Ability,
   ActiveEnergyByUser,
@@ -26,6 +28,7 @@ export class ReactClickerBotSequelize {
     private readonly _logLevel: string,
     @inject(ReactClickerPostgresConnectUrl.$)
     private readonly _reactClickerPostgresConnectUrl: string,
+    @inject(LoggerToken.$)
     private readonly _logger: Logger,
   ) {
     this._connect = new Sequelize(this._reactClickerPostgresConnectUrl, {
@@ -84,5 +87,9 @@ export class ReactClickerBotSequelize {
 
   get boost(): typeof Boost {
     return Boost;
+  }
+
+  async ping(): Promise<void> {
+    await this._connect.authenticate();
   }
 }
