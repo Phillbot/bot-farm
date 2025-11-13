@@ -1,5 +1,6 @@
-import { BotMapping } from '@database/react-clicker-bot/types';
 import { UserFromGetMe } from 'grammy/types';
+
+import { BotMapping } from '@database/react-clicker-bot/types';
 
 export function mapBot(bot: UserFromGetMe): BotMapping {
   return {

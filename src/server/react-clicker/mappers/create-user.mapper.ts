@@ -1,33 +1,31 @@
-import { container } from '@config/inversify.config';
-import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/types';
-import { ReactClickerBot } from '@telegram';
-import { User } from 'grammy/types';
+import { User, UserFromGetMe } from 'grammy/types';
 
-import { mapBot } from './bot.mapper';
-import { mapAbilitiesToCamelCase } from './abilities.mapper';
+import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/types';
+
+import { mapAbilities } from './abilities.mapper';
 import { mapActiveEnergy } from './active-energy.mapper';
-import { mapReferralUser } from './referrals.mapper';
 import { mapBoost } from './boost.mapper';
+import { mapBot } from './bot.mapper';
+import { mapReferrals } from './referrals.mapper';
 import { mapTelegramUser } from './telegram-user.mapper';
 
-export async function createUserResponseDataMapper(
+export function createUserResponseDataMapper(
   telegramUser: User,
   userData: ExtendedUser,
-): Promise<UserResponseData> {
-  const reactClickerBot = container.get<ReactClickerBot>(ReactClickerBot);
-
+  botInfo: UserFromGetMe,
+): UserResponseData {
   return {
     ok: true,
-    bot: mapBot(reactClickerBot.bot.botInfo),
+    bot: mapBot(botInfo),
     user: {
       ...mapTelegramUser(telegramUser),
       balance: userData.balance,
       status: userData.user_status,
-      referralId: userData.referral_id,
+      referralId: userData.referral_id ?? undefined,
       lastLogout: userData.lastSession?.last_logout,
-      abilities: mapAbilitiesToCamelCase(userData.abilities),
+      abilities: mapAbilities(userData.abilities),
       activeEnergy: mapActiveEnergy(userData.activeEnergy, userData.lastSession, userData.abilities),
-      referrals: mapReferralUser(userData.referrals),
+      referrals: mapReferrals(userData.referrals),
       boost: mapBoost(userData.boost),
     },
   };
