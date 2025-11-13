@@ -1,10 +1,14 @@
-import { inject, injectable } from 'inversify';
 import { LanguageCode } from 'grammy/types';
+import { inject, injectable } from 'inversify';
 
-import { AbstractBaseBot, ICommand } from '@telegram/common/base-bot';
+import { LoggerToken } from '@config/symbols';
+
+import { Logger } from '@helpers/logger';
+
+import { AbstractBaseBot } from '@telegram/common/base-bot';
+import { CommandDefinition } from '@telegram/common/base-bot/types';
 import { LocalesDir } from '@telegram/common/symbols';
 import { AuthData, TelegramUtils } from '@telegram/common/telegram-utils';
-import { Logger } from '@helpers/logger';
 
 import { ReactClickerBotPlayCommand, ReactClickerBotStartCommand } from './commands';
 import { COMMANDS } from './react-clicker.utils';
@@ -20,36 +24,35 @@ export class ReactClickerBot extends AbstractBaseBot<ReactClickerBotContext> {
     @inject(ReactClickerDefaultLang.$) defaultLang: LanguageCode,
     reactClickerBotStartCommand: ReactClickerBotStartCommand,
     reactClickerBotPlayCommand: ReactClickerBotPlayCommand,
-    logger: Logger,
+    @inject(LoggerToken.$) logger: Logger,
     private readonly _telegramUtils: TelegramUtils,
   ) {
-    super(
-      _token,
-      defaultLang,
+    super({
+      token: _token,
+      defaultLocale: defaultLang,
       localesDir,
-      ReactClickerBot.createCommandsMap(reactClickerBotStartCommand, reactClickerBotPlayCommand),
-      ReactClickerBot.createDescriptorsMap(),
-      supportLangs,
-      defaultLang,
+      commands: ReactClickerBot.createCommandDefinitions(reactClickerBotStartCommand, reactClickerBotPlayCommand),
+      supportedLangs: supportLangs,
       logger,
-    );
+    });
   }
 
-  private static createCommandsMap(
+  private static createCommandDefinitions(
     startCommand: ReactClickerBotStartCommand,
     playCommand: ReactClickerBotPlayCommand,
-  ): Map<string, { instance: ICommand }> {
-    return new Map<string, { instance: ICommand }>([
-      [COMMANDS.START, { instance: startCommand }],
-      [COMMANDS.PLAY, { instance: playCommand }],
-    ]);
-  }
-
-  private static createDescriptorsMap(): Map<string, string> {
-    return new Map<string, string>([
-      [COMMANDS.START, 'react-clicker-bot-start-command-descriptor'],
-      [COMMANDS.PLAY, 'react-clicker-bot-play-command-descriptor'],
-    ]);
+  ): CommandDefinition[] {
+    return [
+      {
+        command: COMMANDS.START,
+        handler: startCommand,
+        descriptionKey: 'react-clicker-bot-start-command-descriptor',
+      },
+      {
+        command: COMMANDS.PLAY,
+        handler: playCommand,
+        descriptionKey: 'react-clicker-bot-play-command-descriptor',
+      },
+    ];
   }
 
   public async verifyAuth(authData: AuthData): Promise<boolean> {

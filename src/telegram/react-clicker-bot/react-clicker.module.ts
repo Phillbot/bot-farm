@@ -1,7 +1,8 @@
-import { ContainerModule, interfaces } from 'inversify';
 import { LanguageCode } from 'grammy/types';
+import { ContainerModule, interfaces } from 'inversify';
 
 import { getReactClickerConfigOrThrow } from '@config/environment';
+
 import { ReactClickerBotPlayCommand, ReactClickerBotStartCommand } from '@telegram/react-clicker-bot/commands';
 
 import { ReactClickerBot } from './react-clicker.bot';
