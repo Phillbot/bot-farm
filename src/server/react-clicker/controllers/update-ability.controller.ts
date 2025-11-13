@@ -1,16 +1,21 @@
-import { injectable } from 'inversify';
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
+
 import { Logger } from '@helpers/logger';
+
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 import { AbilityType } from '@database/react-clicker-bot/types';
 
 import { BaseController } from '../base-controller';
-import { mapAbilitiesToCamelCase } from '../mappers/abilities.mapper';
+import { mapAbilities } from '../mappers/abilities.mapper';
 
 @injectable()
 export class UpdateAbilityController extends BaseController {
   constructor(
     protected readonly _playerService: ReactClickerBotPlayerService,
+    @inject(LoggerToken.$)
     protected readonly _logger: Logger,
   ) {
     super(_playerService, _logger);
@@ -43,7 +48,7 @@ export class UpdateAbilityController extends BaseController {
 
       this.respondWithSuccess(res, {
         balance: updatedData.balance,
-        abilities: mapAbilitiesToCamelCase(updatedData.abilities),
+        abilities: mapAbilities(updatedData.abilities),
         activeEnergy: updatedData.active_energy,
       });
     } catch (error) {

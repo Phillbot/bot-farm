@@ -1,15 +1,20 @@
 import { Request, Response } from 'express';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
 
 import { Logger } from '@helpers/logger';
+
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
+
 import { BaseController } from '../base-controller';
-import { mapReferralUser } from '../mappers/referrals.mapper';
+import { mapReferrals } from '../mappers/referrals.mapper';
 
 @injectable()
 export class ReferralRewardController extends BaseController {
   constructor(
     protected readonly _playerService: ReactClickerBotPlayerService,
+    @inject(LoggerToken.$)
     protected readonly _logger: Logger,
   ) {
     super(_playerService, _logger);
@@ -30,7 +35,7 @@ export class ReferralRewardController extends BaseController {
       this.respondWithSuccess(res, {
         message: 'Reward claimed successfully',
         balance: result.balance,
-        referrals: mapReferralUser(result.referrals),
+        referrals: mapReferrals(result.referrals),
       });
     } catch (error) {
       if (error instanceof Error) {

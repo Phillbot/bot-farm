@@ -1,10 +1,14 @@
-import { injectable } from 'inversify';
 import { Request, Response } from 'express';
 import { User } from 'grammy/types';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
+
+import { Logger } from '@helpers/logger';
 
 import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
-import { Logger } from '@helpers/logger';
 import { ExtendedUser, UserResponseData } from '@database/react-clicker-bot/types';
+import { ReactClickerBot } from '@telegram';
 
 import { BaseController } from '../base-controller';
 import { createUserResponseDataMapper } from '../mappers/create-user.mapper';
@@ -13,7 +17,10 @@ import { createUserResponseDataMapper } from '../mappers/create-user.mapper';
 export class GetMeController extends BaseController {
   constructor(
     protected readonly _playerService: ReactClickerBotPlayerService,
+    @inject(LoggerToken.$)
     protected readonly _logger: Logger,
+    @inject(ReactClickerBot)
+    private readonly _reactClickerBot: ReactClickerBot,
   ) {
     super(_playerService, _logger);
     this.handle = this.handle.bind(this);
@@ -35,7 +42,7 @@ export class GetMeController extends BaseController {
         return;
       }
 
-      const data = await this.createResponseData(telegramUser, userData);
+      const data = this.createResponseData(telegramUser, userData);
       this.respondWithSuccess(res, data);
     } catch (error) {
       this._logger.error('Error in getMe:', error);
@@ -43,7 +50,7 @@ export class GetMeController extends BaseController {
     }
   }
 
-  private createResponseData(telegramUser: User, userData: ExtendedUser): Promise<UserResponseData> {
-    return createUserResponseDataMapper(telegramUser, userData);
+  private createResponseData(telegramUser: User, userData: ExtendedUser): UserResponseData {
+    return createUserResponseDataMapper(telegramUser, userData, this._reactClickerBot.bot.botInfo);
   }
 }

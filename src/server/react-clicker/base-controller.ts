@@ -1,15 +1,17 @@
-import { injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { Logger } from '@helpers/logger';
-import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 import { User } from 'grammy/types';
+import { injectable } from 'inversify';
+
+import { Logger } from '@helpers/logger';
+
+import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 
 @injectable()
 export abstract class BaseController {
   constructor(
     protected readonly _playerService: ReactClickerBotPlayerService,
     protected readonly _logger: Logger,
-  ) {}
+  ) { }
 
   public abstract handle(req: Request, res: Response): Promise<void>;
 

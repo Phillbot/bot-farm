@@ -1,7 +1,11 @@
-import { injectable } from 'inversify';
 import { Request, Response } from 'express';
-import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
+import { inject, injectable } from 'inversify';
+
+import { LoggerToken } from '@config/symbols';
+
 import { Logger } from '@helpers/logger';
+
+import { ReactClickerBotPlayerService } from '@database/react-clicker-bot/react-clicker-bot-player.service';
 
 import { BaseController } from '../base-controller';
 
@@ -9,6 +13,7 @@ import { BaseController } from '../base-controller';
 export class UpdateLastLoginController extends BaseController {
   constructor(
     protected readonly _playerService: ReactClickerBotPlayerService,
+    @inject(LoggerToken.$)
     protected readonly _logger: Logger,
   ) {
     super(_playerService, _logger);
