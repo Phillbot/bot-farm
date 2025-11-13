@@ -1,6 +1,9 @@
 {
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "import"],
+  "settings": {
+    "import/internal-regex": "^@.*"
+  },
   "overrides": [
     {
       "files": ["*.ts"],
@@ -23,7 +26,35 @@
             "allowTemplateLiterals": true,
           },
         ],
-        "import/order": ["error"],
+        "import/order": [
+          "error",
+          {
+            "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+            "pathGroups": [
+              {
+                "pattern": "@config/**",
+                "group": "internal",
+                "position": "before"
+              },
+              {
+                "pattern": "@helpers/**",
+                "group": "internal",
+                "position": "before"
+              },
+              {
+                "pattern": "@/**",
+                "group": "internal",
+                "position": "after"
+              }
+            ],
+            "pathGroupsExcludedImportTypes": ["builtin", "external"],
+            "newlines-between": "always",
+            "alphabetize": {
+              "order": "asc",
+              "caseInsensitive": true
+            }
+          }
+        ],
         "no-console": "error",
         "no-extra-boolean-cast": "error",
       },
