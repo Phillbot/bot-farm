@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": "18"
+    "node": ">=18"
   },
   "packageManager": "pnpm@10.22.0",
   "scripts": {
@@ -22,7 +22,10 @@
     "migrate:react-clicker:undo": "sequelize-cli --config config/config.js db:migrate:undo --env reactClicker",
     "prettier": "prettier --write \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
     "prettier:check": "prettier -c \"**/*.+(ts|js|jsx|tsx|css|scss|json|yml|html)\"",
-    "lint": "eslint  --ext .tsx,.ts --fix src/"
+    "lint": "eslint  --ext .tsx,.ts --fix src/",
+    "clean:modules": "rm -rf node_modules",
+    "clean:all": "rm -rf node_modules dist",
+    "refresh": "pnpm run clean:all && pnpm install"
   },
   "keywords": [],
   "author": "Phillbot",
