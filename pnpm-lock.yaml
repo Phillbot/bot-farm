@@ -47,6 +47,9 @@ importers:
       grammy:
         specifier: 1.34.0
         version: 1.34.0
+      handy-ts-tools:
+        specifier: ^1.2.0
+        version: 1.2.0
       inversify:
         specifier: 6.0.2
         version: 6.0.2
@@ -1902,6 +1905,10 @@ packages:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
     engines: {node: '>=0.4.7'}
     hasBin: true
+
+  handy-ts-tools@1.2.0:
+    resolution: {integrity: sha512-Q2WXzzvVbrildvxZJyqOv1palQS1JeEEVafpi2KvSYbwG5r44iOHzMLwzAKeZS+/XQEAjnNh3JSi7AEmtunR+g==}
+    engines: {node: '>=18'}
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -5766,6 +5773,8 @@ snapshots:
       wordwrap: 1.0.0
     optionalDependencies:
       uglify-js: 3.19.3
+
+  handy-ts-tools@1.2.0: {}
 
   has-bigints@1.1.0: {}
 

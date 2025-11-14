@@ -8,12 +8,12 @@ import {
   ReplyKeyboardMarkup,
   ReplyKeyboardRemove,
 } from 'grammy/types';
+import { assertNever } from 'handy-ts-tools/asserts';
 import { inject, injectable } from 'inversify';
 
 import { LoggerToken } from '@config/symbols';
 
 import { Logger } from '@helpers/logger';
-import assertNever from '@helpers/utils';
 
 export type AuthData = {
   initData: string;
@@ -111,7 +111,7 @@ export class TelegramUtils {
           keyboard.webApp(button.text, button.url);
           break;
         default:
-          assertNever(type, false);
+          assertNever(type);
       }
     });
 
