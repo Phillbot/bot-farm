@@ -6,11 +6,12 @@
   "engines": {
     "node": "18"
   },
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
-    "prestart": "npm run build",
+    "prestart": "pnpm run build",
     "start": "node dist/index.js",
-    "start:dev": "npx nodemon",
-    "start:dev:all": "npx nodemon --config nodemon-all.json",
+    "start:dev": "pnpm nodemon",
+    "start:dev:all": "pnpm nodemon --config nodemon-all.json",
     "start:all": "node dist/index-all.js",
     "start:nbu-bot": "node dist/index-nbu-bot.js",
     "start:react-clicker-bot": "node dist/index-react-clicker.js",

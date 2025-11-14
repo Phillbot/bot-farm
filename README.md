@@ -26,8 +26,10 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 2. Install dependencies:
 
    ```bash
-   npm install
+   pnpm install
    ```
+
+   > The repo is configured for `pnpm`. If the CLI isn't available yet, run `corepack enable pnpm` once.
 
 3. Create a .env file in the root directory and fill in the necessary environment variables.
 
@@ -65,8 +67,8 @@ Bot Hatchery is a project that manages multiple Telegram bots using the Grammy f
 Run database migrations before starting the app:
 
 ```bash
-npm run migrate:nbu              # NBU bot database
-npm run migrate:react-clicker    # React Clicker DB (when `react_clicker` is enabled)
+pnpm run migrate:nbu              # NBU bot database
+pnpm run migrate:react-clicker    # React Clicker DB (when `react_clicker` is enabled)
 ```
 
 Use the corresponding `:undo` scripts to roll back the latest migration.
@@ -76,17 +78,17 @@ Use the corresponding `:undo` scripts to roll back the latest migration.
 Start the HTTP server (Express + routes):
 
 ```bash
-npm start
+pnpm start
 ```
 
 Background workers and Telegram bots now run via separate entrypoints:
 
 ```bash
-npm run start:all               # Start Express + both bots in a single process
-npm run start:nbu-bot             # NBU Rate bot + its cron jobs
-npm run start:react-clicker-bot   # React Clicker bot (only when `react_clicker` is enabled)
-npm run start:dev                 # Express only (ts-node + nodemon)
-npm run start:dev:all             # Express + bots in one ts-node dev process
+pnpm run start:all               # Start Express + both bots in a single process
+pnpm run start:nbu-bot             # NBU Rate bot + its cron jobs
+pnpm run start:react-clicker-bot   # React Clicker bot (only when `react_clicker` is enabled)
+pnpm run start:dev                 # Express only (ts-node + nodemon)
+pnpm run start:dev:all             # Express + bots in one ts-node dev process
 ```
 
 ## Project Structure
